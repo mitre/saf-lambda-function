@@ -1,2 +1,2 @@
-# safcli-lambda-function
+# saf-lambda-function
 
