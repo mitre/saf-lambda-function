@@ -1,83 +1,118 @@
-const aws = require('aws-sdk');
-const s3 = new aws.S3({ apiVersion: '2006-03-01' });
-//const core = require('@actions/core'); specific to github actions
-const saf = require('@mitre/saf');
-const fs = require('fs');
+const aws = require("aws-sdk");
+const saf = require("@mitre/saf");
+const s3 = new aws.S3({ apiVersion: "2006-03-01" });
+const fs = require("fs");
 
 exports.handler = async (event, context) => {
+    // TODO: Decide is we want to catch undefined saf-cli command groupings
+    // https://stackoverflow.com/questions/15201939/jquery-javascript-check-string-for-multiple-substrings
+    // TODO: Removed hardcoded data and move to lambda paramaters
+    const HEC_TOKEN = "473b3297-1d88-4740-96ff-e6048e51b785";
+    const SPLUNK_SERVER = "splk1.efficacy.online";
+    const CLI_COMMAND = "convert"
+    const CLI_FUNCTION = "hdf2splunk"
+    // TODO: Add the rest of the paramaters
+    /*
+    - SPLUNK_PORT(defults to 8089)
+    - SPLUNK_INDEX(defauls to HEC default )
+    - INSECURE(ignore_ssl)
+    - PROTOCOL(defults to https)
+    - DEBUG - for logging in lambda logging
+    */
 
-    console.log('Loading function');
+    // TODO: Remove in final release
+    console.log("Loading function");
 
     //console.log('Received event:', JSON.stringify(event, null, 2))
-    console.log('Received context:', JSON.stringify(context));
+    // TODO: Move to 'debug' mode
+    console.log("Received context:", JSON.stringify(context));
 
     // Get the object from the event and show its content type
     const bucket = event.Records[0].s3.bucket.name;
-    const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
+
+    const key = decodeURIComponent(
+        event.Records[0].s3.object.key.replace(/\+/g, " ")
+    );
     const params = {
         Bucket: bucket,
         Key: key,
     };
 
-    const hec1 = '473b3297-1d88-4740-96ff-e6048e51b785';
-    //const splunkToken = '3.236.165.7';
-    const splunkToken = 'splk1.efficacy.online';
-
     try {
-        console.log('bucket');
+        console.log("bucket");
         console.log(params.Bucket);
         console.log(params.Key);
 
         const { ContentType } = await s3.getObject(params).promise();
-        console.log('CONTENT TYPE:', ContentType);
 
-        const InputFileLocal = './' + params.Key.toString()
+        console.log("Recieved a ", ContentType, " file.");
 
-        console.log('Write File:', InputFileLocal);
-        const storeData = (ContentType, InputFileLocal) => {
+        const HDF_FILE = "./" + params.Key.toString();
+
+        console.log("Wrote file: ", HDF_FILE);
+
+        const storeData = (ContentType, HDF_FILE) => {
             try {
-                fs.writeFileSync(InputFileLocal, JSON.stringify(ContentType))
+                fs.writeFileSync(HDF_FILE, JSON.stringify(ContentType));
             } catch (err) {
-                console.error(err)
+                console.error(err);
             }
-        }
-
-        console.log('Read File:', InputFileLocal);
-        fs.readFile(InputFileLocal, 'utf8', (err, jsonString) => {
-            if (err) {
-                console.log("File read failed:", err)
-                return
-            }
-            console.log('File data:', jsonString)
-        })
-
-        console.log('saf+++', JSON.stringify(ContentType));
-
-        //process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-        exports.handler = async (event) => {
-            console.log('Environment Variables -START');
-            console.log(process.env);
-            console.log('Environment Variables -END');
         };
 
-        // Testing, remove the hardcoded string and the OR
-        const command_string = "convert:hdf2splunk -i " + InputFileLocal + ' -H ' + splunkToken + ' -t ' + hec1 || JSON.stringify(context) ;
+        console.log("Reading file: ", HDF_FILE);
+        fs.readFile(HDF_FILE, "utf8", (err, jsonString) => {
+            if (err) {
+                console.log("File read failed, with error: ", err);
+                return;
+            }
+            console.log("File Content: \n", jsonString);
+        });
 
-        if(!command_string) {
-            throw new Error("SAF CLI Command String argument is required.");
+        // TODO: Move this to 'debug'
+        console.log("saf+++", JSON.stringify(ContentType));
+        exports.handler = async (event) => {
+            console.log("Environment Variables -START");
+            console.log(process.env);
+            console.log("Environment Variables -END");
+        };
+
+        // TODO: Remove the hardcoded saf-cli command 
+        // TODO: Remove the ||
+        /* TODO: Add the rest of the possible options to the command_string builder
+        - SPLUNK_PORT (defults to 8089)
+        - SPLUNK_INDEX (defauls to HEC default)
+        - INSECURE (ignore_ssl)
+        - PROTOCOL (defults to https)
+        - DEBUG - for logging in lambda logging
+        */
+        const command_string =
+            CLI_COMMAND +
+            ":" +
+            CLI_FUNCTION +
+            " - i" +
+            HDF_FILE +
+            " -H " +
+            SPLUNK_SERVER +
+            " -t " +
+            HEC_TOKEN || JSON.stringify(context);
+
+        if (!command_string) {
+            throw new Error("SAF CLI Command String argument is required. See http://saf-cli.mitre.org for more details.");
         }
 
-        if(command_string.split(" ")[0] == "view:heimdall") {
-            throw new Error("The SAF Action does not support the 'view:heimdall' command. Please reference the documentation for other uses.");
+        if (CLI_COMMAND.trim() === "view" && CLI_FUNCTION.trim() === "heimdall") {
+            throw new Error(
+                "You cannot use the 'saf view:heimdall' command in this environment."
+            );
         }
 
-        console.log('command_string: ', command_string.toString())
+        // TODO: Move all console.log to a 'debug' mode we can specify
+        console.log("command_string: ", command_string.toString());
+
+        // Normal logging - perhpas we add a 'silent' to just have an ACK at the end
+        console.log("Pushing HDF Data", HDF_FILE, "to ", SPLUNK_SERVER)
 
         saf.run(command_string.split(" "));
-
-
-
 
         return ContentType;
     } catch (err) {
@@ -87,4 +122,3 @@ exports.handler = async (event, context) => {
         throw new Error(message);
     }
 };
-
