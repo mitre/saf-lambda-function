@@ -1,19 +1,22 @@
 # saf-lambda-function
+
 AWS Lambda Function for the [SAF CLI](https://github.com/mitre/saf-lambda-function)
 
 This is based on [saf_action](https://github.com/mitre/saf)
 
 ## Input and Output Arguments
+
 ### Input
+
 #### `command_string` (Required)
 
 Command string to be executed by SAF CLI. The action will run `saf <command_string>`.
 
 Example:
 
-* `convert:asff2hdf -i asff-findings.json -o output-file-name.json`
-* More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
-* NOTE: This action does not support `view:heimdall`.
+- `convert:asff2hdf -i asff-findings.json -o output-file-name.json`
+- More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
+- NOTE: This action does not support `view:heimdall`.
 
 ### Output
 
@@ -75,4 +78,3 @@ This software was produced for the U. S. Government under Contract Number HHSM-5
 No other use other than that granted to the U. S. Government, or to those acting on behalf of the U. S. Government under that Clause is authorized without the express written permission of The MITRE Corporation.
 
 For further information, please contact The MITRE Corporation, Contracts Management Office, 7515 Colshire Drive, McLean, VA 22102-7539, (703) 983-6000.
-
