@@ -1,12 +1,14 @@
-console.log('Loading function');
 const aws = require('aws-sdk');
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 //const core = require('@actions/core'); specific to github actions
 const saf = require('@mitre/saf');
-const fs = require('fs')
+const fs = require('fs');
 
 exports.handler = async (event, context) => {
-    //console.log('Received event:', JSON.stringify(event, null, 2));
+
+    console.log('Loading function');
+
+    //console.log('Received event:', JSON.stringify(event, null, 2))
     console.log('Received context:', JSON.stringify(context));
 
     // Get the object from the event and show its content type
@@ -16,6 +18,11 @@ exports.handler = async (event, context) => {
         Bucket: bucket,
         Key: key,
     };
+
+    const hec1 = '473b3297-1d88-4740-96ff-e6048e51b785';
+    //const splunkToken = '3.236.165.7';
+    const splunkToken = 'splk1.efficacy.online';
+
     try {
         console.log('bucket');
         console.log(params.Bucket);
@@ -24,10 +31,38 @@ exports.handler = async (event, context) => {
         const { ContentType } = await s3.getObject(params).promise();
         console.log('CONTENT TYPE:', ContentType);
 
+        const InputFileLocal = './' + params.Key.toString()
+
+        console.log('Write File:', InputFileLocal);
+        const storeData = (ContentType, InputFileLocal) => {
+            try {
+                fs.writeFileSync(InputFileLocal, JSON.stringify(ContentType))
+            } catch (err) {
+                console.error(err)
+            }
+        }
+
+        console.log('Read File:', InputFileLocal);
+        fs.readFile(InputFileLocal, 'utf8', (err, jsonString) => {
+            if (err) {
+                console.log("File read failed:", err)
+                return
+            }
+            console.log('File data:', jsonString)
+        })
+
         console.log('saf+++', JSON.stringify(ContentType));
 
+        //process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+        exports.handler = async (event) => {
+            console.log('Environment Variables -START');
+            console.log(process.env);
+            console.log('Environment Variables -END');
+        };
+
         // Testing, remove the hardcoded string and the OR
-        const command_string = "convert:hdf2splunk -i " + params.Key.toString() || JSON.stringify(context) ;
+        const command_string = "convert:hdf2splunk -i " + InputFileLocal + ' -H ' + splunkToken + ' -t ' + hec1 || JSON.stringify(context) ;
 
         if(!command_string) {
             throw new Error("SAF CLI Command String argument is required.");
@@ -38,27 +73,6 @@ exports.handler = async (event, context) => {
         }
 
         console.log('command_string: ', command_string.toString())
-
-        const path = './' + params.Key.toString()
-
-        console.log('Write File:', path);
-        const storeData = (ContentType, path) => {
-            try {
-                fs.writeFileSync(path, JSON.stringify(ContentType))
-            } catch (err) {
-                console.error(err)
-            }
-        }
-
-        console.log('Read File:', path);
-        fs.readFile(path, 'utf8', (err, jsonString) => {
-            if (err) {
-                console.log("File read failed:", err)
-                return
-            }
-            console.log('File data:', jsonString)
-        })
-
 
         saf.run(command_string.split(" "));
 
