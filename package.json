@@ -8,7 +8,7 @@
     "url": "git+https://github.com/mitre/saf-lambda-function.git"
   },
   "author": "MITRE",
-  "license": "Apache-2.0 MITRE license",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/mitre/saf-lambda-function/issues"
   },
