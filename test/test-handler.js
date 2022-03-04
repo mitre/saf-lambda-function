@@ -1,6 +1,8 @@
 "use strict";
 
-const app = require("../../app.js");
+// TODO: Update this with https://javascript.plainenglish.io/unit-testing-of-aws-lambda-functions-node-js-using-mocha-and-chai-317353f8d60
+
+const app = require("../app");
 const chai = require("chai");
 const expect = chai.expect;
 var event, context;
