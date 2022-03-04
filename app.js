@@ -69,10 +69,10 @@ exports.lambdaHandler = async (event, context) => {
   /*
       - -t HEC_TOKEN
       - -i HDF_FILE
-      - SPLUNK_PORT(defults to 8089)
-      - SPLUNK_INDEX(defauls to HEC default )
+      - SPLUNK_PORT(defaults to 8089)
+      - SPLUNK_INDEX(defaults to HEC default )
       - INSECURE(ignore_ssl)
-      - PROTOCOL(defults to https)
+      - PROTOCOL(defaults to https)
       - DEBUG - for logging in lambda logging
       */
 
@@ -107,10 +107,10 @@ exports.lambdaHandler = async (event, context) => {
     // TODO: Remove the hardcoded saf-cli command
     // TODO: Remove the ||
     /* TODO: Add the rest of the possible options to the command_string builder
-            - SPLUNK_PORT (defults to 8089)
-            - SPLUNK_INDEX (defauls to HEC default)
+            - SPLUNK_PORT (defaults to 8089)
+            - SPLUNK_INDEX (defaults to HEC default)
             - INSECURE (ignore_ssl)
-            - PROTOCOL (defults to https)
+            - PROTOCOL (defaults to https)
             - DEBUG - for logging in lambda logging
             */
 
