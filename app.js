@@ -6,23 +6,51 @@ const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const saf = require('@mitre/saf');
 const fs = require('fs');
 const path = require("path");
-
+//const winston = require('winston');
+//const logging = require('utils/logging');
+const winston = require('winston');
+const { createLogger, format, transports } = winston;
 let response;
-let DEBUG = Boolean(true);
 
 /**
  *
  * Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
  * @param {Object} event - API Gateway Lambda Proxy Input Format
  *
- * Context doc: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html 
+ * Context doc: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
  * @param {Object} context
  *
  * Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
  * @returns {Object} object - API Gateway Lambda Proxy Output Format
- * 
+ *
  */
+
 exports.lambdaHandler = async (event, context) => {
+
+    const logger = createLogger({
+        level: process.env.LOG_LEVEL || 'debug',
+        format: format.combine(
+            format.timestamp(),
+            format.simple()
+        ),
+        transports: [
+            new transports.Console({
+                format: format.combine(
+                    format.timestamp({
+                        format: 'YYYY-MM-DDTHH:mm:ss.SSSZ',
+                    }),
+                    format.printf(
+                        info => `${[info.timestamp]}\t${context.awsRequestId}\t${logger.level.toUpperCase()}\t${info.message}`,
+                    )
+                )
+            })
+        ]
+    })
+
+    logger.log({
+        level: 'debug',
+        message: 'Logging Level set to  : ' + logger.level.toUpperCase()
+    });
 
     // TODO: Decide is we want to catch undefined saf-cli command groupings
     // https://stackoverflow.com/questions/15201939/jquery-javascript-check-string-for-multiple-substringsa
@@ -32,7 +60,7 @@ exports.lambdaHandler = async (event, context) => {
     const CLI_COMMAND = "convert"
     const CLI_FUNCTION = "hdf2splunk"
 
-    // TODO: Add the rest of the paramaters
+    // TODO: Add the rest of the parameters
     /*
     - -t HEC_TOKEN
     - -i HDF_FILE
@@ -43,13 +71,9 @@ exports.lambdaHandler = async (event, context) => {
     - DEBUG - for logging in lambda logging
     */
 
-
-
     // TODO: Remove in final release
-    if (DEBUG) {console.log("Loading function");}
-
-    // TODO: Move to 'debug' mode
-    if (DEBUG) {console.log("Received context:", JSON.stringify(context));}
+    logger.debug("Loading Function");
+    logger.debug("Received context:" + JSON.stringify(context));
 
     // Get the object from the event and show its content type
     const bucket = event.Records[0].s3.bucket.name;
@@ -63,16 +87,16 @@ exports.lambdaHandler = async (event, context) => {
         Bucket: bucket,
         Key: key,
     };
+
     try {
         // const ret = await axios(url);
 
-        if (DEBUG) {console.log("bucket");}
-        if (DEBUG) {console.log(params.Bucket);}
-        if (DEBUG) {console.log(params.Key)}
+        logger.info("Read from bucket: " + params.Bucket);
+        logger.info("Reading File:     " + params.Key);
 
         let { ContentType, Body } = await s3.getObject(params).promise();
 
-        if (DEBUG) {console.log("Recieved File ContentType - ", ContentType);}
+        logger.debug("Recieved File ContentType - " + ContentType);
 
         let HDF_FILE = path.resolve('/tmp/', params.Key.toString());
 
@@ -82,23 +106,11 @@ exports.lambdaHandler = async (event, context) => {
 
         await fs.writeFileSync(HDF_FILE, Body)
 
-        if (DEBUG) {console.log("Wrote file: ", HDF_FILE);}
-        if (DEBUG) {console.log("Reading file: ", HDF_FILE);}
+        logger.info("Wrote file into runtime environment: " + HDF_FILE);
 
-        const data = fs.readFileSync(HDF_FILE, "utf8" );
-        if (DEBUG) {console.log("Reading data: ");}
+        //const data = fs.readFileSync(HDF_FILE, "utf8" );
 
-        // TODO: Move this to 'debug'
-        if (DEBUG) {console.log("Read local object type: ", JSON.stringify(ContentType));}
-
-        exports.handler = async (event) => {
-            console.log("Environment Variables -START");
-            console.log(process.env);
-            console.log("Environment Variables -END");
-        };
-
-        if (DEBUG) {console.log(fs.readdirSync('./'))}
-
+        logger.debug("Finished reading object type: " + JSON.stringify(ContentType));
 
         // TODO: Remove the hardcoded saf-cli command
         // TODO: Remove the ||
@@ -120,15 +132,12 @@ exports.lambdaHandler = async (event, context) => {
             );
         }
 
-        // TODO: Move all console.log to a 'debug' mode we can specify
-        if (DEBUG) {console.log("command_string: ", command_string.join(' '));}
+        logger.debug("command_string: " + command_string.join(' '));
 
         // Normal logging - perhpas we add a 'silent' to just have an ACK at the end
-        if (DEBUG) {console.log("Pushing HDF Data", HDF_FILE, "to ", SPLUNK_SERVER)}
+        logger.info("Pushing HDF Data: " + HDF_FILE +  " to server: " + SPLUNK_SERVER)
 
-        // await saf.run(command_string.split(" "));
-        let saf_cli_response = '';
-        saf_cli_response  = await saf.run(command_string);
+        let saf_cli_response  = await saf.run(command_string);
 
         response = {
             'statusCode': 200,
@@ -136,12 +145,8 @@ exports.lambdaHandler = async (event, context) => {
                 message: saf_cli_response
             })
         }
-
-
-
     } catch (err) {
-
-        console.log(err);
+        logger.info(err);
         return err;
     }
 
@@ -155,3 +160,7 @@ exports.handler = async function(event, context) {
     console.warn("Event not processed.")
     return context.logStreamName
 }
+
+
+
+
