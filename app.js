@@ -92,7 +92,7 @@ exports.lambdaHandler = async (event, context) => {
 
     let { ContentType, Body } = await s3.getObject(params).promise();
 
-    logger.debug("Recieved File ContentType - " + ContentType);
+    logger.debug("Received File ContentType - " + ContentType);
 
     let HDF_FILE = path.resolve("/tmp/", params.Key.toString());
     Body = Body.toString();
