@@ -12,6 +12,10 @@ const winston = require('winston');
 const { createLogger, format, transports } = winston;
 let response;
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  *
  * Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
@@ -54,7 +58,7 @@ exports.lambdaHandler = async (event, context) => {
 
   // TODO: Decide is we want to catch undefined saf-cli command groupings
   // https://stackoverflow.com/questions/15201939/jquery-javascript-check-string-for-multiple-substringsa
-  // TODO: Removed hardcoded data and move to lambda paramaters
+  // TODO: Removed hardcoded data and move to lambda parameters
   const HEC_TOKEN = "473b3297-1d88-4740-96ff-e6048e51b785";
   const SPLUNK_SERVER = "splk1.efficacy.online";
   const CLI_COMMAND = "convert"
@@ -102,7 +106,9 @@ exports.lambdaHandler = async (event, context) => {
 
     Body = Body.toString();
 
-    const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER, '-t', HEC_TOKEN  ];
+
+    // saf convert:hdf2splunk -i ./example-3-layer-overlay_03062022.json -H splk1.efficacy.online -u admin  -p SPLUNK-i-0e35b2c99e66b54a0 -I hdf
+    const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER,  '-u', 'admin', '-p', 'SPLUNK-i-0e35b2c99e66b54a0', '-I', 'dev_hdf'];
 
     await fs.writeFileSync(HDF_FILE, Body)
 
@@ -138,6 +144,8 @@ exports.lambdaHandler = async (event, context) => {
     logger.info("Pushing HDF Data: " + HDF_FILE +  " to server: " + SPLUNK_SERVER)
 
     let saf_cli_response  = await saf.run(command_string);
+
+    await delay(5000);
 
     response = {
       'statusCode': 200,
