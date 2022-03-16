@@ -9,3 +9,4 @@ node_modules
 *.*.un~
 .idea
 .aws-sam
+.env

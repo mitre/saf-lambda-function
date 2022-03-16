@@ -2,7 +2,7 @@
   "name": "saf-lambda-function",
   "version": "1.0.0",
   "description": "Based on GitHub Action for the [SAF CLI](https://github.com/mitre/saf)",
-  "main": "index.js",
+  "main": "app.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mitre/saf-lambda-function.git"
@@ -25,6 +25,7 @@
     "axios": "^0.21.1",
     "constants": "^0.0.2",
     "mecho": "^0.0.2",
+    "prettyjson": "^1.2.5",
     "process": "^0.11.10",
     "winston": "^3.6.0",
     "winston-daily-rotate-file": "^4.6.1"

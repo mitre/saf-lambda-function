@@ -1,16 +1,15 @@
 // const axios = require('axios')
 // const url = 'http://checkip.amazonaws.com/';
+
+//const createWinstonLogger = require('./lib/logger');
 const aws = require('aws-sdk');
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
-//const core = require('@actions/core'); specific to github actions
 const saf = require('@mitre/saf');
 const fs = require('fs');
 const path = require("path");
-//const winston = require('winston');
-//const logging = require('utils/logging');
-const winston = require('winston');
-const { createLogger, format, transports } = winston;
 let response;
+const prettyjson = require('prettyjson');
+const {createWinstonLogger} = require("./lib/logger.js");
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -31,38 +30,20 @@ function delay(ms) {
 
 exports.lambdaHandler = async (event, context) => {
 
-  const logger = createLogger({
-    level: process.env.LOG_LEVEL || 'debug',
-    format: format.combine(
-        format.timestamp(),
-        format.simple()
-    ),
-    transports: [
-      new transports.Console({
-        format: format.combine(
-            format.timestamp({
-              format: 'YYYY-MM-DDTHH:mm:ss.SSSZ',
-            }),
-            format.printf(
-                info => `${[info.timestamp]}\t${context.awsRequestId}\t${logger.level.toUpperCase()}\t${info.message}`,
-            )
-        )
-      })
-    ]
-  })
+  const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
 
-  logger.log({
-    level: 'debug',
-    message: 'Logging Level set to  : ' + logger.level.toUpperCase()
-  });
+  logger.debug('Logging Level set to  : ' + logger.level.toUpperCase());
 
   // TODO: Decide is we want to catch undefined saf-cli command groupings
   // https://stackoverflow.com/questions/15201939/jquery-javascript-check-string-for-multiple-substringsa
   // TODO: Removed hardcoded data and move to lambda parameters
   const HEC_TOKEN = "473b3297-1d88-4740-96ff-e6048e51b785";
-  const SPLUNK_SERVER = "splk1.efficacy.online";
-  const CLI_COMMAND = "convert"
-  const CLI_FUNCTION = "hdf2splunk"
+  const SPLUNK_SERVER = process.env.SPLUNK_SERVER;
+  const SPLUNK_USER = process.env.SPLUNK_USER
+  const SPLUNK_PASSWORD = process.env.SPLUNK_PASSWORD
+  const SPLUNK_INDEX = process.env.SPLUNK_INDEX
+  const CLI_COMMAND = process.env.CLI_COMMAND
+  const CLI_FUNCTION = process.env.CLI_FUNCTION
 
   // TODO: Add the rest of the parameters
   /*
@@ -108,7 +89,8 @@ exports.lambdaHandler = async (event, context) => {
 
 
     // saf convert:hdf2splunk -i ./example-3-layer-overlay_03062022.json -H splk1.efficacy.online -u admin  -p SPLUNK-i-0e35b2c99e66b54a0 -I hdf
-    const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER,  '-u', 'admin', '-p', 'SPLUNK-i-0e35b2c99e66b54a0', '-I', 'dev_hdf'];
+    if CLI_FUNCTION = hdf2splunk {a}
+      const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER,  '-u', SPLUNK_USER, '-p', SPLUNK_PASSWORD, '-I', SPLUNK_INDEX];
 
     await fs.writeFileSync(HDF_FILE, Body)
 
