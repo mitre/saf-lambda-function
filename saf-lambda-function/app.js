@@ -1,7 +1,6 @@
 // const axios = require('axios')
 // const url = 'http://checkip.amazonaws.com/';
 
-//const createWinstonLogger = require('./lib/logger');
 const aws = require('aws-sdk');
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const saf = require('@mitre/saf');
@@ -34,27 +33,13 @@ exports.lambdaHandler = async (event, context) => {
 
   logger.debug('Logging Level set to  : ' + logger.level.toUpperCase());
 
-  // TODO: Decide is we want to catch undefined saf-cli command groupings
   // https://stackoverflow.com/questions/15201939/jquery-javascript-check-string-for-multiple-substringsa
-  // TODO: Removed hardcoded data and move to lambda parameters
-  const HEC_TOKEN = "473b3297-1d88-4740-96ff-e6048e51b785";
   const SPLUNK_SERVER = process.env.SPLUNK_SERVER;
   const SPLUNK_USER = process.env.SPLUNK_USER
   const SPLUNK_PASSWORD = process.env.SPLUNK_PASSWORD
   const SPLUNK_INDEX = process.env.SPLUNK_INDEX
   const CLI_COMMAND = process.env.CLI_COMMAND
   const CLI_FUNCTION = process.env.CLI_FUNCTION
-
-  // TODO: Add the rest of the parameters
-  /*
-  - -t HEC_TOKEN
-  - -i HDF_FILE
-  - SPLUNK_PORT(defults to 8089)
-  - SPLUNK_INDEX(defauls to HEC default )
-  - INSECURE(ignore_ssl)
-  - PROTOCOL(defults to https)
-  - DEBUG - for logging in lambda logging
-  */
 
   // TODO: Remove in final release
   logger.debug("Loading Function");
@@ -88,9 +73,7 @@ exports.lambdaHandler = async (event, context) => {
     Body = Body.toString();
 
 
-    // saf convert:hdf2splunk -i ./example-3-layer-overlay_03062022.json -H splk1.efficacy.online -u admin  -p SPLUNK-i-0e35b2c99e66b54a0 -I hdf
-    if CLI_FUNCTION = hdf2splunk {a}
-      const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER,  '-u', SPLUNK_USER, '-p', SPLUNK_PASSWORD, '-I', SPLUNK_INDEX];
+    const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER,  '-u', SPLUNK_USER, '-p', SPLUNK_PASSWORD, '-I', SPLUNK_INDEX];
 
     await fs.writeFileSync(HDF_FILE, Body)
 
@@ -122,7 +105,6 @@ exports.lambdaHandler = async (event, context) => {
 
     logger.debug("command_string: " + command_string.join(' '));
 
-    // Normal logging - perhpas we add a 'silent' to just have an ACK at the end
     logger.info("Pushing HDF Data: " + HDF_FILE +  " to server: " + SPLUNK_SERVER)
 
     let saf_cli_response  = await saf.run(command_string);
@@ -142,7 +124,6 @@ exports.lambdaHandler = async (event, context) => {
 
   return response
 };
-
 
 exports.handler = async function(event, context) {
   console.log("ENVIRONMENT VARIABLES\n" + JSON.stringify(process.env, null, 2))
