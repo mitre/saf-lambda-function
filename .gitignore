@@ -8,3 +8,4 @@ node_modules
 *.*.un~
 .idea
 .env
+.serverless/saf-lambda-function.zip
