@@ -8,6 +8,9 @@
       "name": "aws",
       "runtime": "nodejs12.x",
       "lambdaHashingVersion": "20201221",
+      "environment": {
+        "BUCKET": "customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj"
+      },
       "stage": "dev",
       "region": "us-east-1",
       "versionFunctions": true,
@@ -220,13 +223,18 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/saf-lambda-function/dev/1648161774751-2022-03-24T22:42:54.751Z/saf-lambda-function.zip"
+                "S3Key": "serverless/saf-lambda-function/dev/1648162918847-2022-03-24T23:01:58.847Z/saf-lambda-function.zip"
               },
               "Handler": "s_saf_lambda_function.handler",
               "Runtime": "nodejs12.x",
               "FunctionName": "saf-lambda-function-dev-saf-lambda-function",
               "MemorySize": 1024,
               "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "BUCKET": "customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj"
+                }
+              },
               "Role": {
                 "Fn::GetAtt": [
                   "IamRoleLambdaExecution",
@@ -238,14 +246,20 @@
               "SafDashlambdaDashfunctionLogGroup"
             ]
           },
-          "SafDashlambdaDashfunctionLambdaVersioncc6KNhthmIkNckLS04GBvyhuCtuOOGUk2hMjZK05moY": {
+          "SafDashlambdaDashfunctionLambdaVersionFKvrfLrEa1orhcg02KRA1sUkgTgfOmT9vujQk7Z4": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "SafDashlambdaDashfunctionLambdaFunction"
               },
-              "CodeSha256": "/4At/3tLrlwQYFI9OANabNyqEMkVTknUYPYx4SRiDDs="
+              "CodeSha256": "OXbfEwF20eQpSVMqq3nFEvAsgnA/xeglCp25PugngMM="
+            }
+          },
+          "NewResource": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj"
             }
           },
           "CWLSubFilterSafDashlambdaDashfunctionLogGroupUsEast1": {
@@ -282,7 +296,7 @@
           "SafDashlambdaDashfunctionLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "SafDashlambdaDashfunctionLambdaVersioncc6KNhthmIkNckLS04GBvyhuCtuOOGUk2hMjZK05moY"
+              "Ref": "SafDashlambdaDashfunctionLambdaVersionFKvrfLrEa1orhcg02KRA1sUkgTgfOmT9vujQk7Z4"
             },
             "Export": {
               "Name": "sls-saf-lambda-function-dev-SafDashlambdaDashfunctionLambdaFunctionQualifiedArn"
@@ -378,15 +392,28 @@
     "functions": {
       "saf-lambda-function": {
         "handler": "s_saf_lambda_function.handler",
-        "events": [],
+        "events": [
+          {}
+        ],
         "name": "saf-lambda-function-dev-saf-lambda-function",
         "package": {},
         "memory": 1024,
         "timeout": 6,
         "runtime": "nodejs12.x",
         "vpc": {},
-        "versionLogicalId": "SafDashlambdaDashfunctionLambdaVersioncc6KNhthmIkNckLS04GBvyhuCtuOOGUk2hMjZK05moY"
+        "versionLogicalId": "SafDashlambdaDashfunctionLambdaVersionFKvrfLrEa1orhcg02KRA1sUkgTgfOmT9vujQk7Z4"
       }
+    },
+    "resources": {
+      "Resources": {
+        "NewResource": {
+          "Type": "AWS::S3::Bucket",
+          "Properties": {
+            "BucketName": "customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj"
+          }
+        }
+      },
+      "Outputs": {}
     },
     "configValidationMode": "warn",
     "serviceFilename": "serverless.yml",
@@ -402,6 +429,9 @@
       },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "resources": {
+        "$ref": "$[\"service\"][\"resources\"]"
       }
     },
     "app": "saf-stepfunction",
@@ -414,7 +444,7 @@
     "artifact": "/Users/yarick/WebstormProjects/saf-lambda-function/.serverless/saf-lambda-function.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/saf-lambda-function/dev/1648161774751-2022-03-24T22:42:54.751Z",
+    "artifactDirectoryName": "serverless/saf-lambda-function/dev/1648162918847-2022-03-24T23:01:58.847Z",
     "artifact": "saf-lambda-function.zip"
   }
 }
