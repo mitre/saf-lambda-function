@@ -13,8 +13,8 @@
 
 service: saf-lambda-function
 # app and org for use with dashboard.serverless.com
-#app: your-app-name
-#org: your-org-name
+app: saf-stepfunction
+org: yarick
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -60,8 +60,8 @@ provider:
 #    - include-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  saf-lambda-function:
+    handler: handler.lambdaHandler
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
