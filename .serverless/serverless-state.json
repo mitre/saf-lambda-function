@@ -223,7 +223,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/saf-lambda-function/dev/1648162918847-2022-03-24T23:01:58.847Z/saf-lambda-function.zip"
+                "S3Key": "serverless/saf-lambda-function/dev/1648229511037-2022-03-25T17:31:51.037Z/saf-lambda-function.zip"
               },
               "Handler": "s_saf_lambda_function.handler",
               "Runtime": "nodejs12.x",
@@ -246,14 +246,64 @@
               "SafDashlambdaDashfunctionLogGroup"
             ]
           },
-          "SafDashlambdaDashfunctionLambdaVersionFKvrfLrEa1orhcg02KRA1sUkgTgfOmT9vujQk7Z4": {
+          "SafDashlambdaDashfunctionLambdaVersionPSyNU31AjJWZbUPSiHHHR4KI0rA8iBa78nhgjZmxY": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "SafDashlambdaDashfunctionLambdaFunction"
               },
-              "CodeSha256": "OXbfEwF20eQpSVMqq3nFEvAsgnA/xeglCp25PugngMM="
+              "CodeSha256": "lYTBswS9W7eAXowyhrvEnQJbwsDu5eep4OGPu9uZRpw="
+            }
+          },
+          "S3BucketCustomizedsplunkawstemplatecwebackups3bucketo55n2ahahqoj": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj",
+              "NotificationConfiguration": {
+                "LambdaConfigurations": [
+                  {
+                    "Event": "s3:ObjectCreated:*",
+                    "Function": {
+                      "Fn::GetAtt": [
+                        "SafDashlambdaDashfunctionLambdaFunction",
+                        "Arn"
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "DependsOn": [
+              "SafDashlambdaDashfunctionLambdaPermissionCustomizedsplunkawstemplatecwebackups3bucketo55n2ahahqojS3"
+            ]
+          },
+          "SafDashlambdaDashfunctionLambdaPermissionCustomizedsplunkawstemplatecwebackups3bucketo55n2ahahqojS3": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "SafDashlambdaDashfunctionLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "s3.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":s3:::customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj"
+                  ]
+                ]
+              },
+              "SourceAccount": {
+                "Ref": "AWS::AccountId"
+              }
             }
           },
           "NewResource": {
@@ -296,7 +346,7 @@
           "SafDashlambdaDashfunctionLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "SafDashlambdaDashfunctionLambdaVersionFKvrfLrEa1orhcg02KRA1sUkgTgfOmT9vujQk7Z4"
+              "Ref": "SafDashlambdaDashfunctionLambdaVersionPSyNU31AjJWZbUPSiHHHR4KI0rA8iBa78nhgjZmxY"
             },
             "Export": {
               "Name": "sls-saf-lambda-function-dev-SafDashlambdaDashfunctionLambdaFunctionQualifiedArn"
@@ -393,7 +443,9 @@
       "saf-lambda-function": {
         "handler": "s_saf_lambda_function.handler",
         "events": [
-          {}
+          {
+            "s3": "customized-splunk-aws-template-cwebackups3bucket-o55n2ahahqoj"
+          }
         ],
         "name": "saf-lambda-function-dev-saf-lambda-function",
         "package": {},
@@ -401,7 +453,7 @@
         "timeout": 6,
         "runtime": "nodejs12.x",
         "vpc": {},
-        "versionLogicalId": "SafDashlambdaDashfunctionLambdaVersionFKvrfLrEa1orhcg02KRA1sUkgTgfOmT9vujQk7Z4"
+        "versionLogicalId": "SafDashlambdaDashfunctionLambdaVersionPSyNU31AjJWZbUPSiHHHR4KI0rA8iBa78nhgjZmxY"
       }
     },
     "resources": {
@@ -421,6 +473,8 @@
       "service": {
         "$ref": "$[\"service\"][\"serviceObject\"]"
       },
+      "useDotenv": true,
+      "variablesResolutionMode": "20210326",
       "app": "saf-stepfunction",
       "org": "yarick",
       "frameworkVersion": "2",
@@ -444,7 +498,7 @@
     "artifact": "/Users/yarick/WebstormProjects/saf-lambda-function/.serverless/saf-lambda-function.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/saf-lambda-function/dev/1648162918847-2022-03-24T23:01:58.847Z",
+    "artifactDirectoryName": "serverless/saf-lambda-function/dev/1648229511037-2022-03-25T17:31:51.037Z",
     "artifact": "saf-lambda-function.zip"
   }
 }
