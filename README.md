@@ -17,20 +17,17 @@ aws s3 ls
 ```bash
 export BUCKET=<bucket-name>
 ```
-6. Set your SAF CLI command that will be executed by the SAF CLI. NOTE: This lambda function will run `saf <command_string> -i input_file_from_bucket.json` See SAF CLI Reference: [SAF CLI Usage](https://github.com/mitre/saf#usage).
+6. Set the SAF CLI command environment variable. This lambda function will run `saf <command_string> -i input_file_from_bucket.json` 
+Example:
 ```bash
 export COMMAND_STRING_INPUT="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
 ```
-Note: Do not include the input flag in the command string as this will be appended on from the S3 bucket trigger, ex: "-i hdf_file.json".
+  - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
+  - NOTE: Do not include the input flag in the command string as this will be appended on from the S3 bucket trigger, ex: "-i hdf_file.json".
+  - NOTE: This action does not support `view heimdall`.
 
-7. Ensure that the environment variables are set properly
-```bash
-env
-```
-8. Deploy the service
-```bash
-sls deploy --verbose
-```
+7. Ensure that the environment variables are set properly: `env`
+8. Deploy the service: `sls deploy --verbose`
 9. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger.
 10. You can test the service by uploading your input file into the `bucket-name` that your exported in step 2.
 
