@@ -1,135 +1,64 @@
 'use strict';
 
-const aws = require('aws-sdk');
+const aws = require('aws-sdk')
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
-const saf = require('@mitre/saf');
 const fs = require('fs');
 const path = require("path");
-let response;
-const {createWinstonLogger} = require("./lib/logger.js");
+const saf = require('@mitre/saf');
 
-function delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+async function getObject(bucket, objectKey) {
+    try {
+        const params = {
+            Bucket: bucket,
+            Key: objectKey
+        }
+
+        const data = await s3.getObject(params).promise();
+
+        return data.Body.toString('utf-8');
+    } catch (e) {
+        throw new Error(`Could not retrieve file from S3: ${e.message}`)
+    }
 }
 
-/**
- *
- * Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
- * @param {Object} event - API Gateway Lambda Proxy Input Format
- *
- * Context doc: https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-context.html
- * @param {Object} context
- *
- * Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
- * @returns {Object} object - API Gateway Lambda Proxy Output Format
- *
- */
-
-exports.lambdaHandler = async (event, context) => {
-
-    const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
-
-    logger.debug('Logging Level set to  : ' + logger.level.toUpperCase());
-
-    // https://stackoverflow.com/questions/15201939/jquery-javascript-check-string-for-multiple-substringsa
-    const SPLUNK_SERVER = process.env.SPLUNK_SERVER;
-    const SPLUNK_USER = process.env.SPLUNK_USER
-    const SPLUNK_PASSWORD = process.env.SPLUNK_PASSWORD
-    const SPLUNK_INDEX = process.env.SPLUNK_INDEX
-    const CLI_COMMAND = process.env.CLI_COMMAND
-    const CLI_FUNCTION = process.env.CLI_FUNCTION
-
-    // TODO: Remove in final release
-    logger.debug("Loading Function");
-    logger.debug("Received context:" + JSON.stringify(context));
-
-    // Get the object from the event and show its content type
+module.exports.saf = async (event, context, callback) => {
     const bucket = event.Records[0].s3.bucket.name;
 
     const key = decodeURIComponent(
         event.Records[0].s3.object.key.replace(/\+/g, " ")
     );
 
-    // READ PARAMS
-    const params = {
-        Bucket: bucket,
-        Key: key,
-    };
+    console.log("Getting object with bucket: " + bucket + " and key: " + key);
 
-    try {
-        // const ret = await axios(url);
+    const s3BucketObjectContents = await getObject(bucket, key);
 
-        logger.info("Read from bucket: " + params.Bucket);
-        logger.info("Reading File:     " + params.Key);
+    // TODO: Explore the saf update to use stdin instead of a file for the contents
+    let HDF_FILE = path.resolve('/tmp/', key);
+    await fs.writeFileSync(HDF_FILE, s3BucketObjectContents);
 
-        let { ContentType, Body } = await s3.getObject(params).promise();
+    const command_string_input = process.env.COMMAND_STRING_INPUT;
+    const command_string = `${command_string_input} -i ${HDF_FILE}`;
 
-        logger.debug("Received File ContentType - " + ContentType);
-
-        let HDF_FILE = path.resolve('/tmp/', params.Key.toString());
-
-        Body = Body.toString();
-
-
-        const command_string = [CLI_COMMAND+':'+CLI_FUNCTION, '-i', HDF_FILE, '-H', SPLUNK_SERVER,  '-u', SPLUNK_USER, '-p', SPLUNK_PASSWORD, '-I', SPLUNK_INDEX];
-
-        await fs.writeFileSync(HDF_FILE, Body)
-
-        logger.info("Wrote file into runtime environment: " + HDF_FILE);
-
-        //const data = fs.readFileSync(HDF_FILE, "utf8" );
-
-        logger.debug("Finished reading object type: " + JSON.stringify(ContentType));
-
-        // TODO: Remove the hardcoded saf-cli command
-        // TODO: Remove the ||
-        /* TODO: Add the rest of the possible options to the command_string builder
-        - SPLUNK_PORT (defults to 8089)
-        - SPLUNK_INDEX (defauls to HEC default)
-        - INSECURE (ignore_ssl)
-        - PROTOCOL (defults to https)
-        - DEBUG - for logging in lambda logging
-        */
-
-        if (!command_string) {
-            throw new Error("SAF CLI Command String argument is required. See http://saf-cli.mitre.org for more details.");
-        }
-
-        if (CLI_COMMAND.trim() === "view" && CLI_FUNCTION.trim() === "heimdall") {
-            throw new Error(
-                "You cannot use the 'saf view:heimdall' command in this environment."
-            );
-        }
-
-        logger.debug("command_string: " + command_string.join(' '));
-
-        logger.info("Pushing HDF Data: " + HDF_FILE +  " to server: " + SPLUNK_SERVER)
-
-        let saf_cli_response  = await saf.run(command_string);
-
-        await delay(5000);
-
-        response = {
-            'statusCode': 200,
-            'body': JSON.stringify({
-                message: saf_cli_response
-            })
-        }
-    } catch (err) {
-        logger.info(err);
-        return err;
+    if (!command_string) {
+        throw new Error("SAF CLI Command String argument is required.");
     }
 
-    return response
+    const saf_command = command_string.split(' ');
+
+    const allowable_topics = ['convert', 'generate', 'harden', 'scan', 'validate', 'view'];
+    const topic = saf_command[0].split(':')[0];
+
+    if (!allowable_topics.includes(topic)) {
+        throw new Error("The command string did not include one of the allowable topics: " + allowable_topics.join(', ') + ". Please reference the documentation for more details.");
+    }
+
+    const command = saf_command[0].split(':')[1];
+
+    if (topic == "view" & command == "heimdall") {
+        throw new Error("The SAF Action does not support the 'view heimdall' command. Please reference the documentation for other uses.");
+    }
+
+    saf.run(saf_command);
+
+    callback(null, `Completed saf function call with command ${command_string}`);
 };
-
-exports.handler = async function(event, context) {
-    console.log("ENVIRONMENT VARIABLES\n" + JSON.stringify(process.env, null, 2))
-    console.info("EVENT\n" + JSON.stringify(event, null, 2))
-    console.warn("Event not processed.")
-    return context.logStreamName
-}
-
-
-
-
