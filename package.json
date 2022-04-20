@@ -1,23 +1,15 @@
 {
-  "name": "replaced-by-user-input",
-  "description": "replaced-by-user-input",
+  "name": "saf-lambda-function",
+  "description": "Serverless lambda function for the [SAF CLI](https://github.com/mitre/saf)",
   "version": "0.0.1",
   "private": true,
-  "devDependencies": {
-    "mecho": "^0.0.2",
-    "axios": "^0.21.1",
-    "chai": "^4.3.6",
-    "lambda-tester": "^4.0.1",
-    "mocha": "^9.2.1"
-  },
   "dependencies": {
     "@mitre/saf": "latest",
-    "constants": "^0.0.2",
-    "process": "^0.11.10",
     "winston": "^3.6.0",
     "winston-daily-rotate-file": "^4.6.1"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "check": "serverless deploy list"
   }
 }

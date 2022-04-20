@@ -9,4 +9,4 @@ package-lock.json
 *.*.un~
 .idea
 .env
-.serverless/*
+.serverless

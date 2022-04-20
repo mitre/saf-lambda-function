@@ -5,6 +5,7 @@ const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const fs = require('fs');
 const path = require("path");
 const saf = require('@mitre/saf');
+const {createWinstonLogger} = require("./lib/logger.js");
 
 async function getObject(bucket, objectKey) {
     try {
@@ -45,10 +46,12 @@ async function runSaf(command_string) {
 }
 
 module.exports.saf = async (event, context, callback) => {
+    const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
+    logger.debug("Called SAF lambda function.");
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
     
-    console.log("Getting object with bucket: " + bucket + " and key: " + key);
+    logger.info("Getting object with bucket: " + bucket + " and key: " + key);
     const s3BucketObjectContents = await getObject(bucket, key);
     
     // TODO: Explore the saf update to use stdin instead of a file for the contents
@@ -58,6 +61,7 @@ module.exports.saf = async (event, context, callback) => {
     const command_string_input = process.env.COMMAND_STRING_INPUT;
     const command_string = `${command_string_input} -i ${INPUT_FILE}`;
     
+    logger.info("Calling SAF CLI with the command: " + command_string);
     await runSaf(command_string);
     callback(null, `Completed saf function call with command ${command_string}`);
 };
