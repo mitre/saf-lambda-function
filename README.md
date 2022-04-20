@@ -27,9 +27,14 @@ export COMMAND_STRING_INPUT="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_p
   - NOTE: This action does not support `view heimdall`.
 
 7. Ensure that the environment variables are set properly: `env`
-8. Deploy the service: `sls deploy --verbose`
+8. Deploy the service: `sls deploy --verbose`. This may take several minutes and should look like the example below.
+<img width="1287" alt="Screen Shot 2022-04-19 at 4 37 58 PM" src="https://user-images.githubusercontent.com/32680215/164254895-c7251b9a-2566-4f42-ac39-b9c97433aabd.png">
+
 9. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger.
-10. You can test the service by uploading your input file into the `bucket-name` that your exported in step 2.
+![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
+
+10. You can test the service by uploading your input file into the `bucket-name` that your exported in step 2.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
+
 
 
 ### Expected Output
