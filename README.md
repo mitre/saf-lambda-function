@@ -1,8 +1,7 @@
 # saf-lambda-function
 This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered by a file uploaded in an S3 bucket, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING_INPUT`).
 
-## To Use
-### Follow the example-specific instructions below:
+## Prerequisites
 1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
 2. Install the Serverless Framework: `npm install -g serverless`
 3. Install the latest dependencies: `npm install`.
@@ -13,6 +12,9 @@ export AWS_PROFILE=<your_creds_profile_name>
 # To ensure your access to AWS, run:
 aws s3 ls
 ```
+
+## Inputs
+### Environment Variables
 5. Set the S3 bucket name that you would like to upload your HDF file to
 ```bash
 export BUCKET=<bucket-name>
@@ -22,12 +24,13 @@ Example:
 ```bash
 export COMMAND_STRING_INPUT="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
 ```
-  - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
   - NOTE: Do not include the input flag in the command string as this will be appended on from the S3 bucket trigger, ex: "-i hdf_file.json".
+  - NOTE: Do not include the output flag in the command string. Instead, set the desired output information in `config.json`.
   - NOTE: This action does not support `view heimdall`.
-
-7. Ensure that the environment variables are set properly: `env`
-8. Modify any config values you may want to change. These are found in `config.json` and have the following default values:
+  - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
+  - You can ensure that the environment variables are set properly: `env`.
+### Config variables
+7. Modify any config values you may want to change. These are found in `config.json` and have the following default values:
 ```
 {
     "service-name": "saf-lambda-function",
@@ -43,21 +46,12 @@ EXAMPLE:
 input file: `<BUCKET>/unprocessed/burpsuite_scan.xml`
 output file: `<bucket-name>/processed/burpsuite_scan_output.json`
 
-9. Test by invoking locally
-
-10. Deploy the service: `sls deploy --verbose`. This may take several minutes and should look like the example below.
-<img width="1287" alt="Screen Shot 2022-04-19 at 4 37 58 PM" src="https://user-images.githubusercontent.com/32680215/164254895-c7251b9a-2566-4f42-ac39-b9c97433aabd.png">
-
-11. (Optional) Test by invoking via AWS
-
-
-### Testing your SAF CLI Lambda function
-
-#### Invoking localling
-1. Create an AWS bucket with your bucket name that you previously specified as an environment variable.
-2. Load a file into the "bucket-input-folder" which is specified in the `config.json`.
-3. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
-3. Edit the bucket name and key in `test/event.json`.
+## Test and Deploy your SAF CLI Lambda function
+### Test by invoking locally
+8. Create an AWS bucket with your bucket name that you previously specified as an environment variable.
+9. Load a file into the "bucket-input-folder" which is specified in the `config.json`.
+10. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
+11. Edit the bucket name and key in `test/event.json`.
 ```
 "bucket": {
     "name": "your-bucket-name",
@@ -66,21 +60,20 @@ output file: `<bucket-name>/processed/burpsuite_scan_output.json`
 "object": {
     "key": "your-input-folder/you-file-name.json",
 ```
-4. Run `npm test`.
-5. You should see logging in the terminal and an uploaded output file in your s3 bucket if the `config.json` file specifies that the function should upload an output file.
+12. Run `npm test`.
+You should see logging in the terminal and an uploaded output file in your s3 bucket if the `config.json` file specifies that the function should upload an output file.
 
 Here, `npm test` is running the command: `serverless invoke local --function saf-lambda-function --path test/event.json`.
 You can change the specifications more if needed by looking at the documentation for [serverless invoke local](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local).
 
-#### Invoking via AWS
-1. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger if not already shown.
+### Deploy the service 
+13. `sls deploy --verbose`. This may take several minutes.
+
+### Test by invoking via AWS
+14. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger if not already shown.
 ![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
 
-12. You can test the service by uploading your input file into the `bucket-name` that your exported in step 2.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
-
-### Expected Output
-The service will run `saf <COMMAND_STRING_INPUT> -i <latest_file_from_bucket>` and the output will be determined by that command.
-For example, for the `convert hdf2splunk` command, the service will convert the uploaded HDF file and send the data to your Splunk instance.
+15. You can test the service by uploading your input file into the `bucket-name` that your exported in step 2.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
 
 
 ### Contributing
