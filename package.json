@@ -9,7 +9,8 @@
     "winston-daily-rotate-file": "^4.6.1"
   },
   "scripts": {
-    "test": "jest",
+    "make-event": "serverless generate-event -t aws:s3 > test/event.json",
+    "test": "serverless invoke local --function saf-lambda-function --path test/event.json",
     "check": "serverless deploy list"
   }
 }
