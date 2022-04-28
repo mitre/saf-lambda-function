@@ -1,7 +1,7 @@
 # saf-lambda-function
 This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered by a file uploaded in an S3 bucket, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING_INPUT`).
 
-## Prerequisites
+## Getting Started
 1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
 2. Install the Serverless Framework: `npm install -g serverless`
 3. Install the latest dependencies: `npm install`.
@@ -67,7 +67,7 @@ Here, `npm test` is running the command: `serverless invoke local --function saf
 You can change the specifications more if needed by looking at the documentation for [serverless invoke local](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local).
 
 ### Deploy the service 
-13. `sls deploy --verbose`. This may take several minutes.
+13. `serverless deploy --verbose`. This may take several minutes.
 
 ### Test by invoking via AWS
 14. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger if not already shown.
