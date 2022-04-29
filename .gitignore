@@ -4,7 +4,6 @@
 /dist
 /tmp
 node_modules
-package-lock.json
 **/.DS_Store
 *.*.un~
 .idea
