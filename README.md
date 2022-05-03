@@ -13,43 +13,39 @@ export AWS_PROFILE=<your_creds_profile_name>
 aws s3 ls
 ```
 
-## Inputs
-### Environment Variables
-5. Set the S3 bucket name that you would like to upload your HDF file to
+## Setting Up the Lambda Function
+This lambda function uses environment variables to orchestrate its function. The required environment variables are `INPUT_BUCKET` and `COMMAND_STRING_INPUT`. The bucket environment variable defines the source bucket for your input to the SAF CLI command, and the command string defines the SAF CLI function and its flags _excluding_ the `-i input` and `-o output` flags which are handled by your input and output bucket and object configurations.
+### Additional Input and Output Configuration
+Additional optional environment variables can be set to further configure the function. The table below shows each variable and the default behavior for optional environment variables. The `INPUT_PREFIX` specifies a path in the INPUT_BUCKET. If set, this function will trigger when a file is uploaded to that path location and run the SAF CLI with that file. The `OUTPUT_BUCKET` can be set as the location to upload results of the SAF CLI command. The `OUTPUT_ENABLED` variable can be set to `false` if the function should not upload results to an S3 bucket. The `OUTPUT_EXTENSION` is the appended name and extension for the output file, if the output is enabled. For example, if the input file is named "my-file.csv" and the `OUTPUT_EXTENSION` is set to "_results.json", then the output file will be named "my-file_results.json". The `OUTPUT_PREFIX` specifies a path within the OUTPUT_BUCKET to place the results of the SAF CLI call. The `SERVICE_NAME` will be the name of this lambda service when deployed.
+
+| ENVIRONMENT NAME | Required | Default | Examples |
+| --- | --- | --- | --- |
+| **COMMAND_STRING** | x | none | "convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf", "convert burpsuite2hdf", See more [here](https://github.com/mitre/saf#usage) |
+| **INPUT_BUCKET** | x | none | "bucket-name" |
+| INPUT_PREFIX |  | "" | "unprocessed/" |
+| OUTPUT_BUCKET |  | The value assigned to `INPUT_BUCKET` | "other-bucket-name" |
+| OUTPUT_ENABLED |  | true |
+| OUTPUT_EXTENSION |  | "_results.json" |
+| OUTPUT_PREFIX |  | "results/" | ".json", ".csv", "_output.json"|
+| SERVICE_NAME |  | "saf-lambda-function" | |
+
+5. Set the required variables: `INPUT_BUCKET` and `COMMAND_STRING`.
+- Example:
 ```bash
-export BUCKET=<bucket-name>
-```
-6. Set the SAF CLI command environment variable. This lambda function will run `saf <command_string> -i input_file_from_bucket.json` 
-Example:
-```bash
-export COMMAND_STRING_INPUT="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
+export INPUT_BUCKET="bucket-name"
+export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
 ```
   - NOTE: Do not include the input flag in the command string as this will be appended on from the S3 bucket trigger, ex: "-i hdf_file.json".
   - NOTE: Do not include the output flag in the command string. Instead, set the desired output information in `config.json`.
   - NOTE: This action does not support `view heimdall`.
   - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
   - You can ensure that the environment variables are set properly: `env`.
-### Config variables
-7. Modify any config values you may want to change. These are found in `config.json` and have the following default values:
-```
-{
-    "service-name": "saf-lambda-function",
-    "bucket-input-folder": "unprocessed/",
-    "bucket-output-folder": "processed/",
-    "output-enabled": true,
-    "output-file-ext": ".json",
-    "output-clarifier": "_output" 
-}
-```
-If "output-enabled" is set to `true`, then the uploaded output file in s3 bucket will be named `<input_file_name><output-clarifier><output-file-ext>`.
-EXAMPLE:
-input file: `<BUCKET>/unprocessed/burpsuite_scan.xml`
-output file: `<bucket-name>/processed/burpsuite_scan_output.json`
+6. Set any optional variables that you may want to change. If the default value for any of these variables suffices, it does not need to be set.
 
 ## Test and Deploy your SAF CLI Lambda function
 ### Test by invoking locally
 8. Create an AWS bucket with your bucket name that you previously specified as an environment variable.
-9. Load a file into the "bucket-input-folder" which is specified in the `config.json`.
+9. Load a file into the `INPUT_BUCKET` in the `INPUT_PREFIX` path if specified.
 10. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
 11. Edit the bucket name and key in `test/event.json`.
 ```
@@ -61,7 +57,7 @@ output file: `<bucket-name>/processed/burpsuite_scan_output.json`
     "key": "your-input-folder/you-file-name.json",
 ```
 12. Run `npm test`.
-You should see logging in the terminal and an uploaded output file in your s3 bucket if the `config.json` file specifies that the function should upload an output file.
+You should see logging in the terminal and an uploaded output file in your s3 bucket if the output is enabled.
 
 Here, `npm test` is running the command: `serverless invoke local --function saf-lambda-function --path test/event.json`.
 You can change the specifications more if needed by looking at the documentation for [serverless invoke local](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local).

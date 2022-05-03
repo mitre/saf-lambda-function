@@ -1,4 +1,4 @@
-service: ${file(./config.json):service-name}
+service: ${env:SERVICE_NAME, "saf-lambda-function"}
 frameworkVersion: '3'
 
 provider:
@@ -13,19 +13,19 @@ provider:
           Resource:
             - "*"
   environment:
-    BUCKET: ${env:BUCKET}
+    INPUT_BUCKET: ${env:INPUT_BUCKET}
 
 functions:
-  saf-lambda-function:
+  saf:
     handler: handler.saf
     events:
       - s3: 
-          bucket: ${env:BUCKET}
-          event: s3:ObjectCreated:*	
+          bucket: ${env:INPUT_BUCKET}
+          event: s3:ObjectCreated:*
           rules:
-            - prefix: ${file(./config.json):bucket-input-folder}
+            - prefix: ${env:INPUT_PREFIX, ""}
     environment:
-      COMMAND_STRING_INPUT: ${env:COMMAND_STRING_INPUT}
+      COMMAND_STRING: ${env:COMMAND_STRING}
 
 package:
   patterns:

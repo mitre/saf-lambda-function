@@ -1,8 +1,0 @@
-{
-    "service-name": "saf-lambda-function",
-    "bucket-input-folder": "unprocessed/",
-    "bucket-output-folder": "processed/",
-    "output-enabled": true,
-    "output-file-ext": ".json",
-    "output-clarifier": "_output" 
-}

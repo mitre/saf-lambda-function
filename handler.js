@@ -6,7 +6,6 @@ const fs = require('fs');
 const path = require("path");
 const saf = require('@mitre/saf');
 const {createWinstonLogger} = require("./lib/logger.js");
-const configData = require('./config.json');
 
 async function getObject(bucket, objectKey) {
     try {
@@ -44,12 +43,23 @@ const getInputFileName = (key) => {
     return path.basename(key);
 };
 
-const getOutputFileName = (input_file_name) => {
+const getOutputFileName = (input_file_name, configData) => {
     const input_file_ext = path.extname(input_file_name);
     const file_name_no_ext = path.basename(input_file_name, input_file_ext);
-    const output_file_ext = configData['output-file-ext'];
-    const output_clarifier = configData['output-clarifier'];
-    return file_name_no_ext + output_clarifier + output_file_ext;
+    return file_name_no_ext + configData['output-extension'];
+};
+
+const getConfigData = () => {
+    const config = {
+        "input-bucket": process.env.INPUT_BUCKET,
+        "input-prefix": process.env.INPUT_PREFIX || "",
+        "output-bucket": process.env.OUTPUT_BUCKET || process.env.INPUT_BUCKET,
+        "output-prefix": process.env.OUTPUT_PREFIX || "results/",
+        "output-extension": process.env.OUTPUT_EXTENSION || "_results.json",
+        "output-enabled": process.env.OUTPUT_ENABLED || true,
+    }
+
+    return config;
 };
 
 async function runSaf(command_string) {
@@ -72,10 +82,11 @@ async function runSaf(command_string) {
         throw new Error("The SAF Action does not support the 'view heimdall' command. Please reference the documentation for other uses.");
     }
     
-    saf.run(saf_command);
+    await saf.run(saf_command);
 }
 
 module.exports.saf = async (event, context, callback) => {
+    const configData = getConfigData();
     const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
     logger.debug("Called SAF lambda function.");
 
@@ -91,24 +102,24 @@ module.exports.saf = async (event, context, callback) => {
     logger.info("Input file: " + INPUT_FILE);
     await fs.writeFileSync(INPUT_FILE, s3BucketObjectContents);
 
-    const command_string_input = process.env.COMMAND_STRING_INPUT;
+    const command_string_input = process.env.COMMAND_STRING;
     let command_string = `${command_string_input} -i ${INPUT_FILE}`;
 
-    const output_file_name = getOutputFileName(input_file_name);
+    const output_file_name = getOutputFileName(input_file_name, configData);
     let OUTPUT_FILE = path.resolve('/tmp/', output_file_name);
     if(configData['output-enabled']) {
         command_string = `${command_string_input} -i ${INPUT_FILE} -o ${OUTPUT_FILE}`;
     }
     
     logger.info("Calling SAF CLI with the command: " + command_string);
-    await runSaf(command_string);
-
-    // Put results file in the bucket in the output location
-    if(configData['output-enabled']) {
-        let outputKey = path.join(configData['bucket-output-folder'], output_file_name);
-        logger.info("Output key: " + outputKey + " for bucket: " + bucket);
-        uploadFile(OUTPUT_FILE, bucket, outputKey);
-    }
-
-    callback(null, `Completed saf function call with command ${command_string}`);
+    await runSaf(command_string)
+        .then(() => {
+            // Put results file in the bucket in the output location
+            if(configData['output-enabled']) {
+                let outputKey = path.join(configData['output-prefix'], output_file_name);
+                logger.info("Output key: " + outputKey + " for bucket: " + bucket);
+                uploadFile(OUTPUT_FILE, bucket, outputKey);
+            }     
+            callback(null, `Completed saf function call with command ${command_string}`);
+        });
 };

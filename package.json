@@ -4,13 +4,13 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@mitre/saf": "latest",
+    "@mitre/saf": "^1.1.5",
     "winston": "^3.6.0",
     "winston-daily-rotate-file": "^4.6.1"
   },
   "scripts": {
     "make-event": "serverless generate-event -t aws:s3 > test/event.json",
-    "test": "serverless invoke local --function saf-lambda-function --path test/event.json",
+    "test": "serverless invoke local --function saf --path test/event.json",
     "check": "serverless deploy list"
   }
 }
