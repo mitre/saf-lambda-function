@@ -22,12 +22,12 @@ Additional optional environment variables can be set to further configure the fu
 | --- | --- | --- | --- |
 | **COMMAND_STRING** | x | none | "convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf", "convert burpsuite2hdf", See more [here](https://github.com/mitre/saf#usage) |
 | **INPUT_BUCKET** | x | none | "bucket-name" |
-| INPUT_PREFIX |  | "" | "unprocessed/" |
+| INPUT_PREFIX |  | "" | "unprocessed/", "unprocessed/hdf/" |
 | OUTPUT_BUCKET |  | The value assigned to `INPUT_BUCKET` | "other-bucket-name" |
-| OUTPUT_ENABLED |  | true |
-| OUTPUT_EXTENSION |  | "_results.json" |
-| OUTPUT_PREFIX |  | "results/" | ".json", ".csv", "_output.json"|
-| SERVICE_NAME |  | "saf-lambda-function" | |
+| OUTPUT_ENABLED |  | true | false |
+| OUTPUT_EXTENSION |  | "_results.json" | ".json", ".csv", "_output.json" |
+| OUTPUT_PREFIX |  | "results/" | "output/", "results/hdf/", "" |
+| SERVICE_NAME |  | "saf-lambda-function" | "different-service-name" |
 
 5. Set the required variables: `INPUT_BUCKET` and `COMMAND_STRING`.
 - Example:
