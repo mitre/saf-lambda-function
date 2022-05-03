@@ -1,5 +1,5 @@
 # saf-lambda-function
-This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered by a file uploaded in an S3 bucket, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING_INPUT`).
+This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered by a file uploaded in an S3 bucket, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING`) and can optionally upload results to an S3 bucket.
 
 ## Getting Started
 1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
@@ -35,8 +35,8 @@ Additional optional environment variables can be set to further configure the fu
 export INPUT_BUCKET="bucket-name"
 export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
 ```
-  - NOTE: Do not include the input flag in the command string as this will be appended on from the S3 bucket trigger, ex: "-i hdf_file.json".
-  - NOTE: Do not include the output flag in the command string. Instead, set the desired output information in `config.json`.
+  - NOTE: Do not include the input flag (i.e. "-i hdf_file.json") in the command string as this will be handled by the S3 input bucket configuration.
+  - NOTE: Do not include the output flag in the command string. Instead, set the output configuration variables.
   - NOTE: This action does not support `view heimdall`.
   - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
   - You can ensure that the environment variables are set properly: `env`.
@@ -44,8 +44,8 @@ export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_passwor
 
 ## Test and Deploy your SAF CLI Lambda function
 ### Test by invoking locally
-8. Create an AWS bucket with your bucket name that you previously specified as an environment variable.
-9. Load a file into the `INPUT_BUCKET` in the `INPUT_PREFIX` path if specified.
+8. Create an AWS bucket with the name that you set as the value for `INPUT_BUCKET`.
+9. Load a file into the `INPUT_BUCKET`. Upload the file in the `INPUT_PREFIX` path if specified.
 10. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
 11. Edit the bucket name and key in `test/event.json`.
 ```
