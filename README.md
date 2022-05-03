@@ -4,7 +4,7 @@ This code uses the Serverless Framework to deploy an AWS lambda function that, w
 ## Getting Started
 1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
 2. Install the Serverless Framework: `npm install -g serverless`
-3. Install the latest dependencies: `npm install`.
+3. Install the latest dependencies: `npm install`
 4. Configure your AWS credentials. [Recommended method](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) is to add a profile in the `~/.aws/credentials` file and then export that profile:
 ```bash
 export AWS_PROFILE=<your_creds_profile_name>
@@ -16,7 +16,7 @@ aws s3 ls
 ## Setting Up the Lambda Function
 This lambda function uses environment variables to orchestrate its function. The required environment variables are `INPUT_BUCKET` and `COMMAND_STRING_INPUT`. The bucket environment variable defines the source bucket for your input to the SAF CLI command, and the command string defines the SAF CLI function and its flags _excluding_ the `-i input` and `-o output` flags which are handled by your input and output bucket and object configurations.
 ### Additional Input and Output Configuration
-Additional optional environment variables can be set to further configure the function. The table below shows each variable and the default behavior for optional environment variables. The `INPUT_PREFIX` specifies a path in the INPUT_BUCKET. If set, this function will trigger when a file is uploaded to that path location and run the SAF CLI with that file. The `OUTPUT_BUCKET` can be set as the location to upload results of the SAF CLI command. The `OUTPUT_ENABLED` variable can be set to `false` if the function should not upload results to an S3 bucket. The `OUTPUT_EXTENSION` is the appended name and extension for the output file, if the output is enabled. For example, if the input file is named "my-file.csv" and the `OUTPUT_EXTENSION` is set to "_results.json", then the output file will be named "my-file_results.json". The `OUTPUT_PREFIX` specifies a path within the OUTPUT_BUCKET to place the results of the SAF CLI call. The `SERVICE_NAME` will be the name of this lambda service when deployed.
+Additional optional variables can be set to further configure the function. The table below shows each variable and the default behavior. The `INPUT_PREFIX` specifies a path in the INPUT_BUCKET. If set, this function will trigger when a file is uploaded to that path location and run the SAF CLI with the uploaded file. If not set, the function will trigger when an object is loaded in the main directory of the INPUT_BUCKET. The `OUTPUT_BUCKET` can be set as the location to upload results of the SAF CLI command. The `OUTPUT_ENABLED` variable can be set to `false` if the function should not upload results to an S3 bucket. The `OUTPUT_EXTENSION` is the appended name and extension for the output file, if the output is enabled. For example, if the input file is named "my-file.csv" and the `OUTPUT_EXTENSION` is set to "_results.json", then the output file will be named "my-file_results.json". The `OUTPUT_PREFIX` specifies a path within the OUTPUT_BUCKET to place the results of the SAF CLI call. The `SERVICE_NAME` will be the name of this lambda service when deployed.
 
 | ENVIRONMENT NAME | Required | Default | Examples |
 | --- | --- | --- | --- |
@@ -44,10 +44,10 @@ export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_passwor
 
 ## Test and Deploy your SAF CLI Lambda function
 ### Test by invoking locally
-8. Create an AWS bucket with the name that you set as the value for `INPUT_BUCKET`.
-9. Load a file into the `INPUT_BUCKET`. Upload the file in the `INPUT_PREFIX` path if specified.
-10. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
-11. Edit the bucket name and key in `test/event.json`.
+7. Create an AWS bucket with the name that you set as the value for `INPUT_BUCKET`.
+8. Load a file into the `INPUT_BUCKET`. Upload the file in the `INPUT_PREFIX` path if specified.
+9. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
+10. Edit the bucket name and key in `test/event.json`.
 ```
 "bucket": {
     "name": "your-bucket-name",
@@ -56,20 +56,20 @@ export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_passwor
 "object": {
     "key": "your-input-folder/you-file-name.json",
 ```
-12. Run `npm test`.
+11. Run `npm test`.
 You should see logging in the terminal and an uploaded output file in your s3 bucket if the output is enabled.
 
 Here, `npm test` is running the command: `serverless invoke local --function saf-lambda-function --path test/event.json`.
 You can change the specifications more if needed by looking at the documentation for [serverless invoke local](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local).
 
 ### Deploy the service 
-13. `serverless deploy --verbose`. This may take several minutes.
+12. `serverless deploy --verbose`. This may take several minutes.
 
 ### Test by invoking via AWS
-14. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger if not already shown.
+13. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger if not already shown.
 ![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
 
-15. You can test the service by uploading your input file into the `bucket-name` that your exported in step 2.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
+14. You can test the service by uploading your input file into the `INPUT_BUCKET`. Upload the file in the `INPUT_PREFIX` path if specified.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
 
 
 ### Contributing
