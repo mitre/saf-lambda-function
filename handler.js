@@ -117,8 +117,8 @@ module.exports.saf = async (event, context, callback) => {
             // Put results file in the bucket in the output location
             if(configData['output-enabled']) {
                 let outputKey = path.join(configData['output-prefix'], output_file_name);
-                logger.info("Output key: " + outputKey + " for bucket: " + bucket);
-                uploadFile(OUTPUT_FILE, bucket, outputKey);
+                logger.info("Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
+                uploadFile(OUTPUT_FILE, configData['output-bucket'], outputKey);
             }     
             callback(null, `Completed saf function call with command ${command_string}`);
         });
