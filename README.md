@@ -1,5 +1,5 @@
 # saf-lambda-function
-This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered by a file uploaded in an S3 bucket, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING`) and can optionally upload results to an S3 bucket.
+This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered at a certain rate, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING`) and can optionally upload results to an S3 bucket. This example is specifically relevant to running the command `convert ionchannel2hdf`.
 
 ## Getting Started
 1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
@@ -14,28 +14,25 @@ aws s3 ls
 ```
 
 ## Setting Up the Lambda Function
-This lambda function uses environment variables to orchestrate its function. The required environment variables are `INPUT_BUCKET` and `COMMAND_STRING_INPUT`. The bucket environment variable defines the source bucket for your input to the SAF CLI command, and the command string defines the SAF CLI function and its flags _excluding_ the `-i input` and `-o output` flags which are handled by your input and output bucket and object configurations.
+This lambda function uses environment variables to orchestrate its function. The required environment variables are `OUTPUT_BUCKET` and `COMMAND_STRING`. The bucket environment variable defines the source bucket for your input to the SAF CLI command, and the command string defines the SAF CLI function and its flags _excluding_ the `-i input` and `-o output` flags which are handled by your input and output bucket and object configurations.
 ### Additional Input and Output Configuration
-Additional optional variables can be set to further configure the function. The table below shows each variable and the default behavior. The `INPUT_PREFIX` specifies a path in the INPUT_BUCKET. If set, this function will trigger when a file is uploaded to that path location and run the SAF CLI with the uploaded file. If not set, the function will trigger when an object is loaded in the main directory of the INPUT_BUCKET. The `OUTPUT_BUCKET` can be set as the location to upload results of the SAF CLI command. The `OUTPUT_ENABLED` variable can be set to `false` if the function should not upload results to an S3 bucket. The `OUTPUT_EXTENSION` is the appended name and extension for the output file, if the output is enabled. For example, if the input file is named "my-file.csv" and the `OUTPUT_EXTENSION` is set to "_results.json", then the output file will be named "my-file_results.json". The `OUTPUT_PREFIX` specifies a path within the OUTPUT_BUCKET to place the results of the SAF CLI call. The `SERVICE_NAME` will be the name of this lambda service when deployed.
+Additional optional variables can be set to further configure the function. The table below shows each variable and the default behavior. The `OUTPUT_BUCKET` can be set as the location to upload results of the SAF CLI command. The `OUTPUT_ENABLED` variable can be set to `false` if the function should not upload results to an S3 bucket. The `OUTPUT_PREFIX` specifies a path within the OUTPUT_BUCKET to place the results of the SAF CLI call. The `SERVICE_NAME` will be the name of this lambda service when deployed.
 
 | ENVIRONMENT NAME | Required | Default | Examples |
 | --- | --- | --- | --- |
 | **COMMAND_STRING** | x | none | "convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf", "convert burpsuite2hdf", See more [here](https://github.com/mitre/saf#usage) |
-| **INPUT_BUCKET** | x | none | "bucket-name" |
-| INPUT_PREFIX |  | "" | "unprocessed/", "unprocessed/hdf/" |
-| OUTPUT_BUCKET |  | The value assigned to `INPUT_BUCKET` | "other-bucket-name" |
+| **OUTPUT_BUCKET** | x | none | "other-bucket-name" |
 | OUTPUT_ENABLED |  | true | false |
-| OUTPUT_EXTENSION |  | "_results.json" | ".json", ".csv", "_output.json" |
 | OUTPUT_PREFIX |  | "results/" | "output/", "results/hdf/", "" |
 | SERVICE_NAME |  | "saf-lambda-function" | "different-service-name" |
 
-5. Set the required variables: `INPUT_BUCKET` and `COMMAND_STRING`.
+5. Set the required variables: `OUTPUT_BUCKET` and `COMMAND_STRING`.
 - Example:
 ```bash
-export INPUT_BUCKET="bucket-name"
-export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
+export OUTPUT_BUCKET="bucket-name"
+export COMMAND_STRING="convert ionchannel2hdf -a api-key -t your-team-name"
 ```
-  - NOTE: Do not include the input flag (i.e. "-i hdf_file.json") in the command string as this will be handled by the S3 input bucket configuration.
+  - NOTE: This version of the lambda function does not handle commands with input flags (i.e. "-i input-file.json").
   - NOTE: Do not include the output flag in the command string. Instead, set the output configuration variables.
   - NOTE: This action does not support `view heimdall`.
   - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
@@ -43,33 +40,15 @@ export COMMAND_STRING="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_passwor
 6. Set any optional variables that you may want to change. If the default value for any of these variables suffices, it does not need to be set.
 
 ## Test and Deploy your SAF CLI Lambda function
-### Test by invoking locally
-7. Create an AWS bucket with the name that you set as the value for `INPUT_BUCKET`.
-8. Load a file into the `INPUT_BUCKET`. Upload the file in the `INPUT_PREFIX` path if specified.
-9. If testing for the first time, run `npm make-event`. This will generate an s3 test event by running the command `serverless generate-event -t aws:s3 > test/event.json`.
-10. Edit the bucket name and key in `test/event.json`.
-```
-"bucket": {
-    "name": "your-bucket-name",
-    ...
-},
-"object": {
-    "key": "your-input-folder/you-file-name.json",
-```
-11. Run `npm test`.
-You should see logging in the terminal and an uploaded output file in your s3 bucket if the output is enabled.
-
-Here, `npm test` is running the command: `serverless invoke local --function saf-lambda-function --path test/event.json`.
-You can change the specifications more if needed by looking at the documentation for [serverless invoke local](https://www.serverless.com/framework/docs/providers/aws/cli-reference/invoke-local).
 
 ### Deploy the service 
-12. `serverless deploy --verbose`. This may take several minutes.
+7. `serverless deploy --verbose`. This may take several minutes.
 
 ### Test by invoking via AWS
-13. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and set the S3 bucket as the trigger if not already shown.
+8. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
 ![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
 
-14. You can test the service by uploading your input file into the `INPUT_BUCKET`. Upload the file in the `INPUT_PREFIX` path if specified.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
+9. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
 
 
 ### Contributing

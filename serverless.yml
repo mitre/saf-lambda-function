@@ -13,17 +13,13 @@ provider:
           Resource:
             - "*"
   environment:
-    INPUT_BUCKET: ${env:INPUT_BUCKET}
+    OUTPUT_BUCKET: ${env:OUTPUT_BUCKET}
 
 functions:
   saf:
     handler: handler.saf
     events:
-      - s3: 
-          bucket: ${env:INPUT_BUCKET}
-          event: s3:ObjectCreated:*
-          rules:
-            - prefix: ${env:INPUT_PREFIX, ""}
+      - schedule: rate(2 minutes)
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
 
