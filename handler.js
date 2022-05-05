@@ -77,8 +77,6 @@ module.exports.saf = async (event, context, callback) => {
     let command_string = `${command_string_input}`;
 
     let OUTPUT_FOLDER = path.resolve('/tmp/', configData['output-prefix']);
-    // Clear OUPUT_FOLDER contents if there is old data
-    // fs.readdirSync(OUTPUT_FOLDER).forEach(f => fs.rmSync(`${OUTPUT_FOLDER}/${f}`));
     fs.rmSync(OUTPUT_FOLDER, { recursive: true });
 
     if (configData['output-enabled']) {
