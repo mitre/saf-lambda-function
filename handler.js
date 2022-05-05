@@ -80,7 +80,9 @@ module.exports.saf = async (event, context, callback) => {
 
     let OUTPUT_FOLDER = path.resolve('/tmp/', configData['output-prefix']);
     // Clear results folder from any old data
-    fs.rmSync(OUTPUT_FOLDER, { recursive: true });
+    if (fs.existsSync(OUTPUT_FOLDER)) {
+        fs.rmSync(OUTPUT_FOLDER, { recursive: true });
+    }
 
     if (configData['output-enabled']) {
         command_string = `${command_string_input} -o ${OUTPUT_FOLDER}`;
