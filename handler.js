@@ -56,15 +56,15 @@ async function runSaf(command_string) {
     await saf.run(saf_command);
 }
 
-async function uploadAllFiles(path, configData) {
-    logger.info("Opening directory: " + path);
-    const dir = await fs.promises.opendir(path)
+async function uploadAllFiles(folder, configData, logger) {
+    logger.info("Opening directory: " + folder);
+    const dir = await fs.promises.opendir(folder);
     for await (const dirent of dir) {
-        logger.info("Looking at the following entry: " + dirent);
-        let outputKey = path.relative('/tmp/', dirent);
-        logger.info("Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
-        uploadFile(dirent, configData['output-bucket'], outputKey);
-        console.log(dirent.name);
+        logger.info("Looking at the following entry: " + dirent.name);
+        let localFileName = path.join(folder, dirent.name);
+        let outputKey = path.relative('/tmp/', localFileName);
+        logger.info("Local File Name: " + localFileName + ", Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
+        uploadFile(localFileName, configData['output-bucket'], outputKey);
     }
 }
 
@@ -77,6 +77,10 @@ module.exports.saf = async (event, context, callback) => {
     let command_string = `${command_string_input}`;
 
     let OUTPUT_FOLDER = path.resolve('/tmp/', configData['output-prefix']);
+    // Clear OUPUT_FOLDER contents if there is old data
+    // fs.readdirSync(OUTPUT_FOLDER).forEach(f => fs.rmSync(`${OUTPUT_FOLDER}/${f}`));
+    fs.rmSync(OUTPUT_FOLDER, { recursive: true });
+
     if (configData['output-enabled']) {
         command_string = `${command_string_input} -o ${OUTPUT_FOLDER}`;
     }
@@ -86,7 +90,7 @@ module.exports.saf = async (event, context, callback) => {
         .then(() => {
             // Put results file in the bucket in the output location
             if (configData['output-enabled']) {
-                uploadAllFiles(OUTPUT_FOLDER, configData);
+                uploadAllFiles(OUTPUT_FOLDER, configData, logger);
             }
             callback(null, `Completed saf function call with command ${command_string}`);
         });
