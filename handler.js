@@ -62,7 +62,7 @@ async function uploadAllFiles(folder, configData, logger) {
     for await (const dirent of dir) {
         logger.info("Looking at the following entry: " + dirent.name);
         let localFileName = path.join(folder, dirent.name);
-        let outputKey = path.relative('/tmp/', localFileName);
+        let outputKey = path.relative('/tmp/', localFileName).replace(/^\\\\\?\\/,"").replace(/\\/g,'\/').replace(/\/\/+/g,'\/');
         logger.info("Local File Name: " + localFileName + ", Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
         uploadFile(localFileName, configData['output-bucket'], outputKey);
     }
@@ -77,6 +77,7 @@ module.exports.saf = async (event, context, callback) => {
     let command_string = `${command_string_input}`;
 
     let OUTPUT_FOLDER = path.resolve('/tmp/', configData['output-prefix']);
+    // Clear results folder from any old data
     fs.rmSync(OUTPUT_FOLDER, { recursive: true });
 
     if (configData['output-enabled']) {
