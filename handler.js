@@ -72,6 +72,8 @@ module.exports.saf = async (event, context, callback) => {
     const configData = getConfigData();
     const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
     logger.debug("Called SAF lambda function.");
+    logger.info("Output bucket: " + configData['output-bucket']);
+    logger.info("Output prefix: " + configData['output-prefix']);
 
     const command_string_input = process.env.COMMAND_STRING;
     let command_string = `${command_string_input}`;
