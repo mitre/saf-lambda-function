@@ -1,7 +1,7 @@
 'use strict';
 
-const aws = require('aws-sdk')
-const s3 = new aws.S3({ apiVersion: '2006-03-01' });
+const { S3 } = require('aws-sdk');
+const s3 = new S3({ apiVersion: '2006-03-01' });
 const fs = require('fs');
 const path = require("path");
 const saf = require('@mitre/saf');
@@ -47,7 +47,7 @@ async function runSaf(command_string) {
         throw new Error("The command string did not include one of the allowable topics: " + allowable_topics.join(', ') + ". Please reference the documentation for more details.");
     }
 
-    const command = saf_command[0].split(':')[1];
+    const command = saf_command[0].includes(':') ? saf_command[0].split(':')[1] : saf_command[1];
 
     if (topic == "view" & command == "heimdall") {
         throw new Error("The SAF Action does not support the 'view heimdall' command. Please reference the documentation for other uses.");
@@ -70,7 +70,7 @@ async function uploadAllFiles(folder, configData, logger) {
 
 module.exports.saf = async (event, context, callback) => {
     const configData = getConfigData();
-    const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
+    const logger = createWinstonLogger(process.env.LOG_LEVEL || 'debug');
     logger.debug("Called SAF lambda function.");
     logger.info("Output bucket: " + configData['output-bucket']);
     logger.info("Output prefix: " + configData['output-prefix']);

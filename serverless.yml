@@ -17,7 +17,7 @@ provider:
 
 functions:
   saf:
-    timeout: 60
+    timeout: ${env:TIMEOUT, 60}
     handler: handler.saf
     events:
       - schedule: rate(3 minutes)
