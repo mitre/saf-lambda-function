@@ -17,6 +17,7 @@ provider:
 
 functions:
   saf:
+    timeout: ${env:TIMEOUT, 60}
     handler: handler.saf
     events:
       - s3: 
@@ -26,6 +27,11 @@ functions:
             - prefix: ${env:INPUT_PREFIX, ""}
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
+      INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
+      OUTPUT_BUCKET: ${env:OUTPUT_BUCKET, env:INPUT_BUCKET}
+      OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}
+      OUTPUT_ENABLED: ${env:OUTPUT_ENABLED, "true"}
+      OUTPUT_EXTENSION: ${env:OUTPUT_EXTENSION, "_results.json"}
 
 package:
   patterns:

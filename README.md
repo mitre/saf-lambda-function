@@ -27,6 +27,7 @@ Additional optional variables can be set to further configure the function. The 
 | OUTPUT_ENABLED |  | true | false |
 | OUTPUT_EXTENSION |  | "_results.json" | ".json", ".csv", "_output.json" |
 | OUTPUT_PREFIX |  | "results/" | "output/", "results/hdf/", "" |
+| OUTPUT_TIMEOUT |  | 60 | lambda timeout value in seconds |
 | SERVICE_NAME |  | "saf-lambda-function" | "different-service-name" |
 
 5. Set the required variables: `INPUT_BUCKET` and `COMMAND_STRING`.

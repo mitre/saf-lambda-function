@@ -22,45 +22,45 @@ async function getObject(bucket, objectKey) {
     }
 }
 
-const uploadFile = (fileName, bucket, key) => {
-    const fileContent = fs.readFileSync(fileName);
+async function uploadFile(fileName, bucket, key) {
+    try {
+        const fileContent = fs.readFileSync(fileName);
 
-    const params = {
-        Bucket: bucket,
-        Key: key, // File name you want to save as in S3
-        Body: fileContent
-    };
+        const params = {
+            Bucket: bucket,
+            Key: key, // File name you want to save as in S3
+            Body: fileContent
+        };
 
-    s3.upload(params, function (err, data) {
-        if (err) {
-            throw err;
-        }
-        console.log(`File uploaded successfully. ${data.Location}`);
-    });
-};
+        await s3.upload(params).promise();
+        console.log('File uploaded successfully.')
+    } catch (e) {
+        throw new Error(`Could not uploade file to S3: ${e.message}`)
+    }
+}
 
-const getInputFileName = (key) => {
+function getInputFileName(key) {
     return path.basename(key);
-};
+}
 
-const getOutputFileName = (input_file_name, configData) => {
+function getOutputFileName(input_file_name, configData) {
     const input_file_ext = path.extname(input_file_name);
     const file_name_no_ext = path.basename(input_file_name, input_file_ext);
     return file_name_no_ext + configData['output-extension'];
-};
+}
 
-const getConfigData = () => {
+function getConfigData() {
     const config = {
         "input-bucket": process.env.INPUT_BUCKET,
-        "input-prefix": process.env.INPUT_PREFIX || "",
-        "output-bucket": process.env.OUTPUT_BUCKET || process.env.INPUT_BUCKET,
-        "output-prefix": process.env.OUTPUT_PREFIX || "results/",
-        "output-extension": process.env.OUTPUT_EXTENSION || "_results.json",
-        "output-enabled": process.env.OUTPUT_ENABLED || true,
+        "input-prefix": process.env.INPUT_PREFIX,
+        "output-bucket": process.env.OUTPUT_BUCKET,
+        "output-prefix": process.env.OUTPUT_PREFIX,
+        "output-extension": process.env.OUTPUT_EXTENSION,
+        "output-enabled": process.env.OUTPUT_ENABLED,
     }
 
     return config;
-};
+}
 
 async function runSaf(command_string) {
     if (!command_string) {
@@ -120,6 +120,6 @@ module.exports.saf = async (event, context, callback) => {
                 logger.info("Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
                 uploadFile(OUTPUT_FILE, configData['output-bucket'], outputKey);
             }
-            callback(null, `Completed saf function call with command ${command_string}`);
+            callback("Error. Did not complete the lambda function successfully.", `Completed saf function call with command ${command_string}`);
         });
-};
+}
