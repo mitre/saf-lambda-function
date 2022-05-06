@@ -22,6 +22,8 @@ functions:
       - schedule: rate(2 minutes)
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
+      OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}
+      OUTPUT_ENABLED: ${env:OUTPUT_ENABLED, "true"}
 
 package:
   patterns:

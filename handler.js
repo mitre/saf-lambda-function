@@ -28,7 +28,7 @@ const getConfigData = () => {
     const config = {
         "output-bucket": process.env.OUTPUT_BUCKET,
         "output-prefix": process.env.OUTPUT_PREFIX || "results/",
-        "output-enabled": process.env.OUTPUT_ENABLED || true,
+        "output-enabled": ('OUTPUT_ENABLED' in process.env) ? (process.env.OUTPUT_ENABLED === "true") : true,
     }
     return config;
 };
@@ -74,6 +74,7 @@ module.exports.saf = async (event, context, callback) => {
     logger.debug("Called SAF lambda function.");
     logger.info("Output bucket: " + configData['output-bucket']);
     logger.info("Output prefix: " + configData['output-prefix']);
+    logger.info("Output enabled: " + configData['output-enabled']);
 
     const command_string_input = process.env.COMMAND_STRING;
     let command_string = `${command_string_input}`;
@@ -81,20 +82,21 @@ module.exports.saf = async (event, context, callback) => {
     let OUTPUT_FOLDER = path.resolve('/tmp/', configData['output-prefix']);
     // Clear results folder from any old data
     if (fs.existsSync(OUTPUT_FOLDER)) {
-        fs.rmSync(OUTPUT_FOLDER, { recursive: true });
+        await fs.promises.rmdir(OUTPUT_FOLDER, { recursive: true });
+        logger.debug("Cleared old data from the folder: " + OUTPUT_FOLDER);
     }
 
     if (configData['output-enabled']) {
+        logger.debug("Output is enabled. Setting command string to include output folder.");
         command_string = `${command_string_input} -o ${OUTPUT_FOLDER}`;
     }
 
     logger.info("Calling SAF CLI with the command: " + command_string);
-    await runSaf(command_string)
-        .then(() => {
-            // Put results file in the bucket in the output location
-            if (configData['output-enabled']) {
-                uploadAllFiles(OUTPUT_FOLDER, configData, logger);
-            }
-            callback(null, `Completed saf function call with command ${command_string}`);
-        });
+    await runSaf(command_string);
+    // Put results file in the bucket in the output location
+    if (configData['output-enabled']) {
+        logger.info("Starting to upload all files.");
+        await uploadAllFiles(OUTPUT_FOLDER, configData, logger);
+    }
+    callback(null, `Completed saf function call with command ${command_string}`);
 };
