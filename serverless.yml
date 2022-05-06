@@ -17,9 +17,10 @@ provider:
 
 functions:
   saf:
+    timeout: 60
     handler: handler.saf
     events:
-      - schedule: rate(2 minutes)
+      - schedule: rate(3 minutes)
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
       OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}

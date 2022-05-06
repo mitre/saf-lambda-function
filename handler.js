@@ -7,7 +7,7 @@ const path = require("path");
 const saf = require('@mitre/saf');
 const { createWinstonLogger } = require("./lib/logger.js");
 
-const uploadFile = (fileName, bucket, key) => {
+const uploadFile = async (fileName, bucket, key) => {
     const fileContent = fs.readFileSync(fileName);
 
     const params = {
@@ -16,7 +16,7 @@ const uploadFile = (fileName, bucket, key) => {
         Body: fileContent
     };
 
-    s3.upload(params, function (err, data) {
+    await s3.upload(params, function (err, data) {
         if (err) {
             throw err;
         }
@@ -62,9 +62,9 @@ async function uploadAllFiles(folder, configData, logger) {
     for await (const dirent of dir) {
         logger.info("Looking at the following entry: " + dirent.name);
         let localFileName = path.join(folder, dirent.name);
-        let outputKey = path.relative('/tmp/', localFileName).replace(/^\\\\\?\\/,"").replace(/\\/g,'\/').replace(/\/\/+/g,'\/');
+        let outputKey = path.relative('/tmp/', localFileName).replace(/^\\\\\?\\/, "").replace(/\\/g, '\/').replace(/\/\/+/g, '\/');
         logger.info("Local File Name: " + localFileName + ", Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
-        uploadFile(localFileName, configData['output-bucket'], outputKey);
+        await uploadFile(localFileName, configData['output-bucket'], outputKey);
     }
 }
 
@@ -98,5 +98,5 @@ module.exports.saf = async (event, context, callback) => {
         logger.info("Starting to upload all files.");
         await uploadAllFiles(OUTPUT_FOLDER, configData, logger);
     }
-    callback(null, `Completed saf function call with command ${command_string}`);
+    callback('ERROR: Saf lambda function did not complete successfully.', `Completed saf function call with command ${command_string}`);
 };
