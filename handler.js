@@ -1,13 +1,12 @@
 'use strict';
 
-const { S3 } = require('aws-sdk');
-const s3 = new S3({ apiVersion: '2006-03-01' });
+const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require("path");
-const saf = require('@mitre/saf');
+const saf_cli = require('@mitre/saf');
 const { createWinstonLogger } = require("./lib/logger.js");
 
-async function getObject(bucket, objectKey) {
+async function getObject(s3, bucket, objectKey) {
     try {
         const params = {
             Bucket: bucket,
@@ -22,7 +21,7 @@ async function getObject(bucket, objectKey) {
     }
 }
 
-async function uploadFile(fileName, bucket, key) {
+async function uploadFile(s3, fileName, bucket, key) {
     try {
         const fileContent = fs.readFileSync(fileName);
 
@@ -35,7 +34,7 @@ async function uploadFile(fileName, bucket, key) {
         await s3.upload(params).promise();
         console.log('File uploaded successfully.')
     } catch (e) {
-        throw new Error(`Could not uploade file to S3: ${e.message}`)
+        throw new Error(`Could not upload file to S3: ${e.message}`)
     }
 }
 
@@ -82,21 +81,21 @@ async function runSaf(command_string) {
         throw new Error("The SAF Action does not support the 'view heimdall' command. Please reference the documentation for other uses.");
     }
 
-    await saf.run(saf_command);
+    await saf_cli.run(saf_command);
 }
 
 module.exports.saf = async (event, context, callback) => {
+    const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
     const configData = getConfigData();
-    const logger = createWinstonLogger(context.awsRequestId, process.env.LOG_LEVEL || 'debug');
+    const logger = createWinstonLogger(process.env.LOG_LEVEL || 'debug');
     logger.debug("Called SAF lambda function.");
 
     const bucket = event.Records[0].s3.bucket.name;
     const key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
 
     logger.info("Getting object with bucket: " + bucket + " and key: " + key);
-    const s3BucketObjectContents = await getObject(bucket, key);
+    const s3BucketObjectContents = await getObject(s3, bucket, key);
 
-    // TODO: Explore the saf update to use stdin instead of a file for the contents
     const input_file_name = getInputFileName(key);
     let INPUT_FILE = path.resolve('/tmp/', input_file_name);
     logger.info("Input file: " + INPUT_FILE);
@@ -112,14 +111,13 @@ module.exports.saf = async (event, context, callback) => {
     }
 
     logger.info("Calling SAF CLI with the command: " + command_string);
-    await runSaf(command_string)
-        .then(() => {
-            // Put results file in the bucket in the output location
-            if (configData['output-enabled']) {
-                let outputKey = path.join(configData['output-prefix'], output_file_name);
-                logger.info("Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
-                uploadFile(OUTPUT_FILE, configData['output-bucket'], outputKey);
-            }
-            callback("Error. Did not complete the lambda function successfully.", `Completed saf function call with command ${command_string}`);
-        });
+    await runSaf(command_string);
+
+    // Put results file in the bucket in the output location
+    if (configData['output-enabled']) {
+        let outputKey = path.join(configData['output-prefix'], output_file_name);
+        logger.info("Output key: " + outputKey + " for bucket: " + configData['output-bucket']);
+        await uploadFile(s3, OUTPUT_FILE, configData['output-bucket'], outputKey);
+    }
+    callback("Error. Did not complete the lambda function successfully.", `Completed saf function call with command ${command_string}`);
 }
