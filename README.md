@@ -29,7 +29,7 @@ Additional optional variables can be set to further configure the function. The 
 | OUTPUT_TIMEOUT |  | 60 | lambda timeout value in seconds |
 | SERVICE_NAME |  | "saf-lambda-function" | "different-service-name" |
 
-5. Set the required variables: `OUTPUT_BUCKET` and `COMMAND_STRING`.
+6. Set the required variables: `OUTPUT_BUCKET` and `COMMAND_STRING`.
 - Example:
 ```bash
 export OUTPUT_BUCKET="bucket-name"
@@ -40,18 +40,18 @@ export COMMAND_STRING="convert ionchannel2hdf -a api-key -t your-team-name"
   - NOTE: This action does not support `view heimdall`.
   - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
   - You can ensure that the environment variables are set properly: `env`.
-6. Set any optional variables that you may want to change. If the default value for any of these variables suffices, it does not need to be set.
+7. Set any optional variables that you may want to change. If the default value for any of these variables suffices, it does not need to be set.
 
 ## Test and Deploy your SAF CLI Lambda function
 
 ### Deploy the service 
-7. `serverless deploy --verbose`. This may take several minutes.
+8. `serverless deploy --verbose`. This may take several minutes.
 
 ### Test by invoking via AWS
-8. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
+9. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
 ![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
 
-9. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
+10. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
 
 
 ### Contributing
