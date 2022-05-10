@@ -22,8 +22,8 @@ Additional optional variables can be set to further configure the function. The 
 
 | ENVIRONMENT NAME | Required | Default | Examples |
 | --- | --- | --- | --- |
-| **COMMAND_STRING** | x | none | "convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf", "convert burpsuite2hdf", See more [here](https://github.com/mitre/saf#usage) |
-| **OUTPUT_BUCKET** | x | none | "other-bucket-name" |
+| **COMMAND_STRING** | x | none | "convert ionchannel2hdf -a api-key -t your-team-name", See more [here](https://github.com/mitre/saf#usage) |
+| **OUTPUT_BUCKET** | x | none | "bucket-name" |
 | OUTPUT_ENABLED |  | true | false |
 | OUTPUT_PREFIX |  | "results/" | "output/", "results/hdf/", "" |
 | OUTPUT_TIMEOUT |  | 60 | lambda timeout value in seconds |
@@ -44,14 +44,17 @@ export COMMAND_STRING="convert ionchannel2hdf -a api-key -t your-team-name"
 
 ## Test and Deploy your SAF CLI Lambda function
 
+### Test by invoking locally
+8. Run `serverless invoke local --function saf` to invoke the function locally. This will interact with your real OUTPUT_BUCKET. You can check the AWS Console for the results files.
+
 ### Deploy the service 
-8. `serverless deploy --verbose`. This may take several minutes.
+9. `serverless deploy --verbose`. This may take several minutes.
 
 ### Test by invoking via AWS
-9. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
+10. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
 ![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
 
-10. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
+11. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
 
 
 ### Contributing
