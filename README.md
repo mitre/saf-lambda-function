@@ -2,10 +2,12 @@
 This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered at a certain rate, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING`) and can optionally upload results to an S3 bucket. This example is specifically relevant to running the command `convert ionchannel2hdf`.
 
 ## Getting Started
-1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
-2. Install the Serverless Framework: `npm install -g serverless`
+(This is installed and kept up to date using `npm`, which is included with most versions of [NodeJS](https://nodejs.org/en/).)
+1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git -b ionChannel`
+2. cd saf-lambda-function
 3. Install the latest dependencies: `npm install`
-4. Configure your AWS credentials. [Recommended method](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) is to add a profile in the `~/.aws/credentials` file and then export that profile:
+4. Install the Serverless Framework: `npm install -g serverless`
+5. Configure your AWS credentials. [Recommended method](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) is to add a profile in the `~/.aws/credentials` file and then export that profile:
 ```bash
 export AWS_PROFILE=<your_creds_profile_name>
 
