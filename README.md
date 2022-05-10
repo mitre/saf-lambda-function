@@ -2,10 +2,12 @@
 This code uses the Serverless Framework to deploy an AWS lambda function that, when triggered at a certain rate, will run the [SAF CLI](https://github.com/mitre/saf) with the given input command (`COMMAND_STRING`) and can optionally upload results to an S3 bucket. This example is specifically relevant to running the command `convert ionchannel2hdf`.
 
 ## Getting Started
-1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git`
-2. Install the Serverless Framework: `npm install -g serverless`
+(This is installed and kept up to date using `npm`, which is included with most versions of [NodeJS](https://nodejs.org/en/).)
+1. Clone this repository: `git clone https://github.com/mitre/saf-lambda-function.git -b ionChannel`
+2. cd saf-lambda-function
 3. Install the latest dependencies: `npm install`
-4. Configure your AWS credentials. [Recommended method](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) is to add a profile in the `~/.aws/credentials` file and then export that profile:
+4. Install the Serverless Framework: `npm install -g serverless`
+5. Configure your AWS credentials. [Recommended method](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) is to add a profile in the `~/.aws/credentials` file and then export that profile:
 ```bash
 export AWS_PROFILE=<your_creds_profile_name>
 
@@ -20,14 +22,14 @@ Additional optional variables can be set to further configure the function. The 
 
 | ENVIRONMENT NAME | Required | Default | Examples |
 | --- | --- | --- | --- |
-| **COMMAND_STRING** | x | none | "convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf", "convert burpsuite2hdf", See more [here](https://github.com/mitre/saf#usage) |
-| **OUTPUT_BUCKET** | x | none | "other-bucket-name" |
+| **COMMAND_STRING** | x | none | "convert ionchannel2hdf -a api-key -t your-team-name", See more [here](https://github.com/mitre/saf#usage) |
+| **OUTPUT_BUCKET** | x | none | "bucket-name" |
 | OUTPUT_ENABLED |  | true | false |
 | OUTPUT_PREFIX |  | "results/" | "output/", "results/hdf/", "" |
 | OUTPUT_TIMEOUT |  | 60 | lambda timeout value in seconds |
 | SERVICE_NAME |  | "saf-lambda-function" | "different-service-name" |
 
-5. Set the required variables: `OUTPUT_BUCKET` and `COMMAND_STRING`.
+6. Set the required variables: `OUTPUT_BUCKET` and `COMMAND_STRING`.
 - Example:
 ```bash
 export OUTPUT_BUCKET="bucket-name"
@@ -38,18 +40,21 @@ export COMMAND_STRING="convert ionchannel2hdf -a api-key -t your-team-name"
   - NOTE: This action does not support `view heimdall`.
   - More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
   - You can ensure that the environment variables are set properly: `env`.
-6. Set any optional variables that you may want to change. If the default value for any of these variables suffices, it does not need to be set.
+7. Set any optional variables that you may want to change. If the default value for any of these variables suffices, it does not need to be set.
 
 ## Test and Deploy your SAF CLI Lambda function
 
+### Test by invoking locally
+8. Run `serverless invoke local --function saf` to invoke the function locally. This will interact with your real OUTPUT_BUCKET. You can check the AWS Console for the results files.
+
 ### Deploy the service 
-7. `serverless deploy --verbose`. This may take several minutes.
+9. `serverless deploy --verbose`. This may take several minutes.
 
 ### Test by invoking via AWS
-8. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
+10. When the service is deployed successfully, log into the AWS console, go to the "Lamda" interface, and check the logs under the "monitor" tab to see if the function ran at the desired time.
 ![Screenshot 2022-04-20 at 09-30-41 Functions - Lambda](https://user-images.githubusercontent.com/32680215/164255328-782346f3-689f-458d-8ebe-b3f9af67964a.png)
 
-9. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
+11. Check the output in your `OUTPUT_BUCKET`.![Screenshot 2022-04-20 at 09-32-39 sls-attempt-three-emcrod - S3 bucket](https://user-images.githubusercontent.com/32680215/164255397-a6b68b51-31da-4228-83eb-bcd5928f315e.png)
 
 
 ### Contributing
