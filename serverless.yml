@@ -6,6 +6,8 @@ provider:
   runtime: nodejs14.x
   iam:
     role:
+      path: ${env:IAM_ROLE_PATH}
+      permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
       statements:
         - Effect: "Allow"
           Action:
@@ -17,7 +19,7 @@ provider:
 
 functions:
   saf:
-    timeout: ${env:TIMEOUT, 60}
+    timeout: ${env:TIMEOUT, 900}
     handler: handler.saf
     events:
       - schedule: rate(3 minutes)
