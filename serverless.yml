@@ -22,7 +22,7 @@ functions:
     timeout: ${env:TIMEOUT, 900}
     handler: handler.saf
     events:
-      - schedule: rate(3 minutes)
+      - schedule: rate(${env:SCHED_INTERVAL_MINUTES, 1440} minutes)
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
       OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}
