@@ -26,8 +26,10 @@ Additional optional variables can be set to further configure the function. The 
 | **OUTPUT_BUCKET** | x | none | "bucket-name" |
 | OUTPUT_ENABLED |  | true | false |
 | OUTPUT_PREFIX |  | "results/" | "output/", "results/hdf/", "" |
-| OUTPUT_TIMEOUT |  | 60 | lambda timeout value in seconds |
+| OUTPUT_TIMEOUT |  | 900 | lambda timeout value in seconds |
 | SERVICE_NAME |  | "saf-lambda-function" | "different-service-name" |
+| IAM_ROLE_PATH |  | </role/path/> | "/delegatedadmin/developer/" |
+| IAM_ROLE_BOUNDARY |  | <arn:aws:iam::${aws:accountId}:policy/permissions-boundary-policy> | "arn:aws:iam::1234567890:policy/cms-cloud-admin/developer-boundary-policy" |
 
 6. Set the required variables: `OUTPUT_BUCKET` and `COMMAND_STRING`.
 - Example:
