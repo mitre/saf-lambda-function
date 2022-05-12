@@ -18,6 +18,25 @@ function safCallback(error_message, success_message) {
     console.log("Called callback");
 };
 
+function setDefaultEnvVars() {
+    process.env.OUTPUT_ENABLED = true;
+    process.env.OUTPUT_EXTENSION = "_results.json";
+    process.env.COMMAND_STRING = "convert hdf2condensed";
+    process.env.INPUT_BUCKET = "test_bucket";
+    process.env.INPUT_PREFIX = "";
+    process.env.OUTPUT_BUCKET = "test_bucket";
+    process.env.OUTPUT_PREFIX = "results/";
+    process.env.SERVICE_NAME = "saf-lambda-function";
+}
+
+function mockS3GetObject() {
+    AWSMock.mock('S3', 'getObject', function (parmas, callback) {
+        callback(null, {
+            Body: Buffer.from(fs.readFileSync("test/red_hat_good.json"))
+        })
+    });
+}
+
 describe('SAF Lambda', () => {
 
     const OLD_ENV = process.env;
@@ -31,21 +50,8 @@ describe('SAF Lambda', () => {
     });
 
     test('should call convert hdf2condensed', async () => {
-        process.env.OUTPUT_ENABLED = true;
-        process.env.OUTPUT_EXTENSION = "_results.json";
-        process.env.COMMAND_STRING = "convert hdf2condensed";
-        process.env.INPUT_BUCKET = "test_bucket";
-        process.env.INPUT_PREFIX = "";
-        process.env.OUTPUT_BUCKET = "test_bucket";
-        process.env.OUTPUT_PREFIX = "results/";
-        process.env.SERVICE_NAME = "saf-lambda-function";
-
-        // S3 getObject mock - return a Buffer object with file data
-        AWSMock.mock('S3', 'getObject', function (parmas, callback) {
-            callback(null, {
-                Body: Buffer.from(fs.readFileSync("test/red_hat_good.json"))
-            })
-        });
+        setDefaultEnvVars();
+        mockS3GetObject();
 
         const output_buffer = Buffer.from(fs.readFileSync("test/red_hat_good_results.json"));
 
@@ -54,7 +60,7 @@ describe('SAF Lambda', () => {
             params.should.have.property('Bucket', 'test_bucket');
             params.should.have.property('Key', "results/red_hat_good_results.json");
             params.should.have.property('Body', output_buffer);
-
+        
             callback(null, null);
         });
 
@@ -64,29 +70,14 @@ describe('SAF Lambda', () => {
     });
 
     test('should call convert hdf2condensed with unique output bucket', async () => {
-        process.env.OUTPUT_ENABLED = true;
-        process.env.OUTPUT_EXTENSION = "_results.json";
-        process.env.COMMAND_STRING = "convert hdf2condensed";
-        process.env.INPUT_BUCKET = "test_bucket";
-        process.env.INPUT_PREFIX = "";
+        setDefaultEnvVars();
         process.env.OUTPUT_BUCKET = "test_output_bucket";
-        process.env.OUTPUT_PREFIX = "results/";
-        process.env.SERVICE_NAME = "saf-lambda-function";
 
-        // S3 getObject mock - return a Buffer object with file data
-        AWSMock.mock('S3', 'getObject', function (parmas, callback) {
-            callback(null, {
-                Body: Buffer.from(fs.readFileSync("test/red_hat_good.json"))
-            })
-        });
-
-        const output_buffer = Buffer.from(fs.readFileSync("test/red_hat_good_results.json"));
+        mockS3GetObject();
 
         AWSMock.mock('S3', 'upload', (params, callback) => {
             params.should.be.an.Object();
             params.should.have.property('Bucket', 'test_output_bucket');
-            params.should.have.property('Key', "results/red_hat_good_results.json");
-            params.should.have.property('Body', output_buffer);
 
             callback(null, null);
         });
