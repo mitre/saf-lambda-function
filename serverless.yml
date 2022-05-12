@@ -6,8 +6,8 @@ provider:
   runtime: nodejs14.x
   iam:
     role:
-      path: ${env:IAM_ROLE_PATH}
-      permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
+      path: ${env:IAM_ROLE_PATH, ""}
+      permissionsBoundary: ${env:IAM_ROLE_BOUNDARY, ""}
       statements:
         - Effect: "Allow"
           Action:
