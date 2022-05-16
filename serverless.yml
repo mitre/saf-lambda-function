@@ -32,7 +32,7 @@ functions:
       INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
       OUTPUT_BUCKET: ${env:OUTPUT_BUCKET, env:INPUT_BUCKET}
       OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}
-      OUTPUT_ENABLED: ${env:OUTPUT_ENABLED, "true"}
+      OUTPUT_ENABLED: ${strToBool(${env:OUTPUT_ENABLED, true})}
       OUTPUT_EXTENSION: ${env:OUTPUT_EXTENSION, "_results.json"}
 
 package:
