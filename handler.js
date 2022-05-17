@@ -95,14 +95,14 @@ module.exports.saf = async (event, context, callback) => {
 
     const output_file_name = getOutputFileName(input_file_name);
     let OUTPUT_FILE = path.resolve('/tmp/', output_file_name);
-    if (process.env.OUTPUT_ENABLED) {
+    if (process.env.OUTPUT_ENABLED == "true") {
         command_string = `${command_string_input} -i ${INPUT_FILE} -o ${OUTPUT_FILE}`;
     }
 
     logger.info("Calling SAF CLI with the command: " + command_string);
     await runSaf(command_string);
 
-    if (process.env.OUTPUT_ENABLED) {
+    if (process.env.OUTPUT_ENABLED == "true") {
         // Check if an output file needs to be uploaded
         let outputKey = path.join(process.env.OUTPUT_PREFIX, output_file_name);
         logger.debug("Output key: " + outputKey + " for bucket: " + process.env.OUTPUT_BUCKET);
