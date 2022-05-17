@@ -90,23 +90,37 @@ module.exports.saf = async (event, context, callback) => {
 
     const command_string_input = process.env.COMMAND_STRING;
     let command_string = `${command_string_input} -i ${INPUT_FILE}`;
-
-    //try // exception handling for -o unexpected argument error
-
+    
     const output_file_name = getOutputFileName(input_file_name);
     let OUTPUT_FILE = path.resolve('/tmp/', output_file_name);
+
     if (process.env.OUTPUT_ENABLED == "true") {
         command_string = `${command_string_input} -i ${INPUT_FILE} -o ${OUTPUT_FILE}`;
     }
 
     logger.info("Calling SAF CLI with the command: " + command_string);
-    await runSaf(command_string);
 
-    if (process.env.OUTPUT_ENABLED == "true") {
+    try {
+        await runSaf(command_string);
+    } catch (e) {
+        if (e.message.includes("Unexpected arguments:", "-o")) {
+            command_string = `${command_string_input} -i ${INPUT_FILE}`;
+            logger.info("Retrying with appropriate command: " + command_string)
+            await runSaf(command_string);
+        } else {
+            logger.info("Error from SAF CLI:\n" + e.stack);
+        }
+    }
+
+    if (process.env.OUTPUT_ENABLED == "true") { // && -o does not exist
         // Check if an output file needs to be uploaded
-        let outputKey = path.join(process.env.OUTPUT_PREFIX, output_file_name);
-        logger.debug("Output key: " + outputKey + " for bucket: " + process.env.OUTPUT_BUCKET);
-        await uploadFile(s3, OUTPUT_FILE, process.env.OUTPUT_BUCKET, outputKey, logger);
+        try {
+            let outputKey = path.join(process.env.OUTPUT_PREFIX, output_file_name);
+            logger.debug("Output key: " + outputKey + " for bucket: " + process.env.OUTPUT_BUCKET);
+            await uploadFile(s3, OUTPUT_FILE, process.env.OUTPUT_BUCKET, outputKey, logger);
+        } catch (e) {
+            logger.info("OUTPUT_ENABLED set to true but output content not found:\n" + e.stack);
+        }
     }
     callback("Error. Did not complete the lambda function successfully.", `Completed saf function call with command ${command_string}`);
 }

@@ -102,6 +102,7 @@ describe('SAF Lambda', () => {
 
     test('should call view summary without output option', async () => {
         setRequiredEnvVars("view summary");
+        setOptionalEnvVarsToDefaultValues();
         process.env.OUTPUT_ENABLED = "false";
 
         mockS3GetObject("test/input/red_hat_good.json");
@@ -113,16 +114,17 @@ describe('SAF Lambda', () => {
         AWSMock.restore('S3');
     });
 
-    // test('should call a command with a required -o flag and the output to S3 disabled', async () => {
-    //     setRequiredEnvVars("convert hdf2burpsuite");
-    //     process.env.OUTPUT_ENABLED = "false";
+    test('should call a command that does not allow the -o flag', async () => {
+        setRequiredEnvVars("validate threshold -F test/input/threshold.yaml");
+        setOptionalEnvVarsToDefaultValues();
 
-    //     mockS3GetObject();
+        mockS3GetObject("test/input/red_hat_good.json");
 
-        // const test_s3_event = get_test_s3_event("red_hat_good.json");
+        const test_s3_event = get_test_s3_event("red_hat_good.json");
 
-    //     await handler.saf(test_s3_event, {}, safCallback);
+        await handler.saf(test_s3_event, {}, safCallback);
 
-    //     AWSMock.restore('S3');
-    // });
+        AWSMock.restore('S3');
+    });
+
 });
