@@ -120,11 +120,10 @@ describe('SAF Lambda', () => {
 
         mockS3GetObject("test/input/red_hat_good.json");
 
-        const test_s3_event = get_test_s3_event("red_hat_good.json");
+        const test_s3_event = get_test_s3_event("red_hat_good_validate.json");
 
         await handler.saf(test_s3_event, {}, safCallback);
 
         AWSMock.restore('S3');
     });
-
 });

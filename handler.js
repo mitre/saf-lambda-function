@@ -23,16 +23,25 @@ async function getObject(s3, bucket, objectKey) {
 
 async function uploadFile(s3, fileName, bucket, key, logger) {
     try {
-        const fileContent = fs.readFileSync(fileName);
-
-        const params = {
-            Bucket: bucket,
-            Key: key, // File name you want to save as in S3
-            Body: fileContent
-        };
-
-        await s3.upload(params).promise();
-        logger.info(`Successfully uploaded file: ${key} to bucket: ${bucket}.`);
+        if (!fs.existsSync(fileName)) {
+            logger.info("OUTPUT_ENABLED is set to true but the function will not upload anything to the S3 bucket because the upload file: " + fileName + " does not exist.");
+        }
+        else {
+            const fileContent = fs.readFileSync(fileName);
+            if (fileContent.length == 0) {
+                logger.info("OUTPUT_ENABLED is set to true but there is no content to upload in: " + fileName);
+            }
+            else {
+                const params = {
+                    Bucket: bucket,
+                    Key: key, // File name you want to save as in S3
+                    Body: fileContent
+                };
+        
+                await s3.upload(params).promise();
+                logger.info(`Successfully uploaded file: ${key} to bucket: ${bucket}.`);
+            }
+        }
     } catch (e) {
         throw new Error(`Could not upload file to S3: ${e.message}`);
     }
@@ -114,13 +123,9 @@ module.exports.saf = async (event, context, callback) => {
 
     if (process.env.OUTPUT_ENABLED == "true") { // && -o does not exist
         // Check if an output file needs to be uploaded
-        try {
-            let outputKey = path.join(process.env.OUTPUT_PREFIX, output_file_name);
-            logger.debug("Output key: " + outputKey + " for bucket: " + process.env.OUTPUT_BUCKET);
-            await uploadFile(s3, OUTPUT_FILE, process.env.OUTPUT_BUCKET, outputKey, logger);
-        } catch (e) {
-            logger.info("OUTPUT_ENABLED set to true but output content not found:\n" + e.stack);
-        }
+        let outputKey = path.join(process.env.OUTPUT_PREFIX, output_file_name);
+        logger.debug("Output key: " + outputKey + " for bucket: " + process.env.OUTPUT_BUCKET);
+        await uploadFile(s3, OUTPUT_FILE, process.env.OUTPUT_BUCKET, outputKey, logger);
     }
     callback("Error. Did not complete the lambda function successfully.", `Completed saf function call with command ${command_string}`);
 }

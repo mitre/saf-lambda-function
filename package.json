@@ -2,7 +2,6 @@
   "name": "saf-lambda-function",
   "description": "Serverless lambda function for the [SAF CLI](https://github.com/mitre/saf)",
   "version": "0.0.1",
-  "private": true,
   "dependencies": {
     "@mitre/saf": "^1.1.6",
     "winston": "^3.6.0",
