@@ -3,7 +3,7 @@
   "description": "Serverless lambda function for the [SAF CLI](https://github.com/mitre/saf)",
   "version": "0.0.1",
   "dependencies": {
-    "@mitre/saf": "^1.1.6",
+    "@mitre/saf": "latest",
     "winston": "^3.6.0",
     "winston-daily-rotate-file": "^4.6.1"
   },
