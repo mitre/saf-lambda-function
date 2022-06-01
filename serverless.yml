@@ -14,6 +14,16 @@ provider:
             - "s3:*"
           Resource:
             - "*"
+  deploymentBucket:
+    blockPublicAccess: true
+  s3:
+    slsBucket:
+      name: ${env:INPUT_BUCKET}
+      publicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
   environment:
     INPUT_BUCKET: ${env:INPUT_BUCKET}
 
@@ -22,11 +32,11 @@ functions:
     timeout: ${env:TIMEOUT, 60}
     handler: handler.saf
     events:
-      - s3: 
-          bucket: ${env:INPUT_BUCKET}
-          event: s3:ObjectCreated:*
-          rules:
-            - prefix: ${env:INPUT_PREFIX, ""}
+      - s3: slsBucket
+          # bucket: ${env:INPUT_BUCKET}
+          # event: s3:ObjectCreated:*
+          # rules:
+          #   - prefix: ${env:INPUT_PREFIX, ""}
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
       INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
