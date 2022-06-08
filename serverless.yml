@@ -14,10 +14,10 @@ provider:
             - "s3:*"
           Resource:
             - "*"
-  deploymentBucket:
+  deploymentBucket: # Custom configuration for deployment bucket is unique and put here
     blockPublicAccess: true
-  s3:
-    slsBucket:
+  s3: # Custom configuration for any other s3 buckets can be added in this section
+    inputBucket:
       name: ${env:INPUT_BUCKET}
       publicAccessBlockConfiguration:
         BlockPublicAcls: true
@@ -32,11 +32,11 @@ functions:
     timeout: ${env:TIMEOUT, 60}
     handler: handler.saf
     events:
-      - s3: slsBucket
-          # bucket: ${env:INPUT_BUCKET}
-          # event: s3:ObjectCreated:*
-          # rules:
-          #   - prefix: ${env:INPUT_PREFIX, ""}
+      - s3:
+          bucket: inputBucket
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: ${env:INPUT_PREFIX, ""}
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
       INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
