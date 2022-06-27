@@ -1,0 +1,21 @@
+{
+  "name": "saf-lambda-function",
+  "description": "Serverless lambda function for the [SAF CLI](https://github.com/mitre/saf)",
+  "version": "0.0.1",
+  "dependencies": {
+    "@mitre/saf": "latest",
+    "winston": "^3.6.0",
+    "winston-daily-rotate-file": "^4.6.1"
+  },
+  "scripts": {
+    "make-event": "serverless generate-event -t aws:s3 > test/event.json",
+    "invoke": "serverless invoke local --function saf --path test/event.json",
+    "test": "jest",
+    "check": "serverless deploy list"
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^5.7.0",
+    "jest": "^28.1.0",
+    "should": "^13.2.3"
+  }
+}

@@ -1,0 +1,46 @@
+service: ${env:SERVICE_NAME, "saf-lambda-function"}
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  iam:
+    role:
+      path: ${env:IAM_ROLE_PATH, ""}
+      permissionsBoundary: ${env:IAM_ROLE_BOUNDARY, ""}
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:*"
+          Resource:
+            - "*"
+  deploymentBucket: # Custom configuration for deployment bucket is unique and put here
+    blockPublicAccess: true
+  environment:
+    INPUT_BUCKET: ${env:INPUT_BUCKET}
+
+functions:
+  saf:
+    timeout: ${env:TIMEOUT, 60}
+    handler: handler.saf
+    events:
+      - s3:
+          bucket: ${env:INPUT_BUCKET}
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: ${env:INPUT_PREFIX, ""}
+          existing: true # test pending in CMS
+    environment:
+      COMMAND_STRING: ${env:COMMAND_STRING}
+      INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
+      OUTPUT_BUCKET: ${env:OUTPUT_BUCKET, env:INPUT_BUCKET}
+      OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}
+      OUTPUT_ENABLED: ${strToBool(${env:OUTPUT_ENABLED, true})}
+      OUTPUT_EXTENSION: ${env:OUTPUT_EXTENSION, "_results.json"}
+
+package:
+  patterns:
+    - '!.git/**'
+    - '!.aws-sam/**'
+    - '!node_modules/aws-sdk/**'
+    - '!.idea/**'
