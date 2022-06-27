@@ -29,7 +29,7 @@ functions:
           event: s3:ObjectCreated:*
           rules:
             - prefix: ${env:INPUT_PREFIX, ""}
-          existing: true # test pending in CMS
+          existing: true 
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
       INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
