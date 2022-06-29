@@ -14,10 +14,8 @@ provider:
             - "s3:*"
           Resource:
             - "*"
-  deploymentBucket: # Custom configuration for deployment bucket is unique and put here
+  deploymentBucket: # Custom configuration for deployment bucket
     blockPublicAccess: true
-  environment:
-    INPUT_BUCKET: ${env:INPUT_BUCKET}
 
 functions:
   saf:
@@ -32,6 +30,7 @@ functions:
           existing: true 
     environment:
       COMMAND_STRING: ${env:COMMAND_STRING}
+      INPUT_BUCKET: ${env:INPUT_BUCKET}
       INPUT_PREFIX: ${env:INPUT_PREFIX, ""}
       OUTPUT_BUCKET: ${env:OUTPUT_BUCKET, env:INPUT_BUCKET}
       OUTPUT_PREFIX: ${env:OUTPUT_PREFIX, "results/"}
