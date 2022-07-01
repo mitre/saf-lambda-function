@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "dependencies": {
     "@mitre/saf": "latest",
-    "winston": "^3.6.0",
+    "winston": "^3.8.1",
     "winston-daily-rotate-file": "^4.6.1"
   },
   "scripts": {
