@@ -14,7 +14,7 @@
     "check": "serverless deploy list"
   },
   "devDependencies": {
-    "aws-sdk-mock": "^6.2.1",
+    "aws-sdk-mock": "^6.2.2",
     "jest": "^30.2.0",
     "should": "^13.2.3"
   }
